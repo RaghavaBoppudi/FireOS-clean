@@ -42,6 +42,7 @@ public class HomeWatcher extends Service {
     }
 
     private void follow() {
+        catchUp();
         while (true) {
             Process logcat = null;
             try {
@@ -50,8 +51,7 @@ public class HomeWatcher extends Service {
                         .redirectErrorStream(true).start();
                 BufferedReader lines = new BufferedReader(new InputStreamReader(logcat.getInputStream()));
                 for (String line; (line = lines.readLine()) != null; ) {
-                    if (line.contains("android.intent.category.HOME")
-                            && line.contains("cmp=" + HomeActivity.AMAZON_HOME + "/")) {
+                    if (isAmazonHome(line)) {
                         amazonHomeStarted();
                     }
                 }
@@ -64,6 +64,35 @@ public class HomeWatcher extends Service {
             }
             SystemClock.sleep(2000);
         }
+    }
+
+    /**
+     * At boot, or when the system restarts this service, Amazon's home may already be on screen. Only take over
+     * if it was the last thing started, so a video someone opened in the meantime is left alone.
+     */
+    private void catchUp() {
+        String last = null;
+        try {
+            Process dump = new ProcessBuilder("logcat", "-d", "-v", "brief", "ActivityManager:I", "*:S")
+                    .redirectErrorStream(true).start();
+            BufferedReader lines = new BufferedReader(new InputStreamReader(dump.getInputStream()));
+            for (String line; (line = lines.readLine()) != null; ) {
+                if (line.contains("START u0")) {
+                    last = line;
+                }
+            }
+            dump.waitFor();
+        } catch (Exception e) {
+            return;
+        }
+        if (last != null && isAmazonHome(last)) {
+            amazonHomeStarted();
+        }
+    }
+
+    private static boolean isAmazonHome(String line) {
+        return line.contains("android.intent.category.HOME")
+                && line.contains("cmp=" + HomeActivity.AMAZON_HOME + "/");
     }
 
     private void amazonHomeStarted() {

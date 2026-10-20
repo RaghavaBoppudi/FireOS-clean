@@ -29,8 +29,10 @@
 
         <service android:name=".HomeWatcher" android:exported="false" />
 
+        <!-- BOOT_COMPLETED goes to ~100 receivers one at a time on a Fire TV Stick; at default priority this
+             one waited minutes. Ordered broadcasts go out by priority, so ask to be near the front. -->
         <receiver android:name=".BootReceiver">
-            <intent-filter>
+            <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
