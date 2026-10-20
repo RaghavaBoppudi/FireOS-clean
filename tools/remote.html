@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>TV Remote</title>
+<style>
+  :root {
+    --bg: #0b0c0f; --shell: #17191d; --edge: #262930; --key: #25282e; --key-hi: #363a43;
+    --ring: #1e2126; --text: #eceef2; --dim: #8a8f99; --accent: #5ab8ff;
+    --ok: #3ddc84; --wait: #f5b942; --bad: #ff6b5e;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    min-height: 100vh; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
+    gap: 28px 40px; padding: 24px 16px 40px;
+  }
+  button { font: inherit; color: inherit; border: 0; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+  svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+
+  header { flex-basis: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: .01em; }
+  .status { --c: var(--wait); display: flex; align-items: center; gap: 8px; max-width: 640px; color: var(--dim); font-size: 13px; text-align: center; }
+  .status[data-state=connected], .status[data-state=firetv] { --c: var(--ok); }
+  .status[data-state=error] { --c: var(--bad); }
+  .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+
+  .remote {
+    width: 248px; padding: 26px 24px 30px; border-radius: 124px 124px 36px 36px;
+    background: linear-gradient(180deg, #1d2025, var(--shell)); border: 1px solid var(--edge);
+    box-shadow: 0 24px 60px #000a, inset 0 1px 0 #ffffff0d;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .dpad { position: relative; width: 200px; height: 200px; border-radius: 50%; overflow: hidden;
+          background: var(--ring); box-shadow: inset 0 2px 8px #0009, 0 1px 0 #ffffff0a; }
+  .dir { position: absolute; inset: 0; display: flex; background: transparent; color: var(--dim); transition: background .06s; }
+  .dir.hit { background: var(--key-hi); color: var(--text); }
+  .up    { clip-path: polygon(50% 50%, 0 0, 100% 0);     align-items: flex-start; justify-content: center; padding-top: 14px; }
+  .down  { clip-path: polygon(50% 50%, 0 100%, 100% 100%); align-items: flex-end; justify-content: center; padding-bottom: 14px; }
+  .left  { clip-path: polygon(50% 50%, 0 0, 0 100%);     align-items: center; justify-content: flex-start; padding-left: 14px; }
+  .right { clip-path: polygon(50% 50%, 100% 0, 100% 100%); align-items: center; justify-content: flex-end; padding-right: 14px; }
+  .ok { position: absolute; left: 50%; top: 50%; width: 88px; height: 88px; margin: -44px 0 0 -44px; border-radius: 50%;
+        background: var(--key); color: var(--dim); font-size: 12px; font-weight: 600; letter-spacing: .08em;
+        box-shadow: 0 0 0 6px var(--ring), 0 3px 10px #0009, inset 0 1px 0 #ffffff12; transition: background .06s, transform .06s; }
+  .ok.hit { background: var(--key-hi); color: var(--text); transform: scale(.96); }
+
+  .row { display: flex; gap: 18px; }
+  .key { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--key);
+         box-shadow: 0 2px 6px #0008, inset 0 1px 0 #ffffff10; transition: background .06s, transform .06s; }
+  .key.hit { background: var(--key-hi); transform: scale(.93); }
+  .key.small { width: 40px; height: 40px; }
+  .key.small svg { width: 18px; height: 18px; }
+  .power { color: var(--bad); }
+  .divider { width: 60%; height: 1px; background: var(--edge); }
+
+  .panel { width: min(100%, 520px); display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--shell); border: 1px solid var(--edge); border-radius: 16px; padding: 16px; }
+  .card h2 { margin: 0 0 12px; display: flex; align-items: center; gap: 12px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  .card h2 .spacer { flex: 1; }
+  .card p { margin: 10px 0 0; color: var(--dim); font-size: 12.5px; }
+  .screen { position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 10px; overflow: hidden; background: #000;
+            display: grid; place-items: center; color: var(--dim); font-size: 13px; text-align: center; padding: 12px; }
+  .screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  label.toggle { display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; cursor: pointer; }
+  .btn { background: var(--key); border-radius: 10px; padding: 9px 14px; font-weight: 500; }
+  .btn:hover { background: var(--key-hi); }
+  .btn.mini { padding: 5px 10px; font-size: 12.5px; text-transform: none; letter-spacing: 0; }
+  form { display: flex; gap: 8px; margin: 0; }
+  input[type=text] { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--edge);
+                     background: var(--bg); color: var(--text); font: inherit; }
+  input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .shortcuts { display: grid; grid-template-columns: repeat(2, auto 1fr); gap: 8px 12px; align-items: center; color: var(--dim); font-size: 13px; }
+  kbd { justify-self: start; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); background: var(--bg);
+        border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+  @media (max-width: 420px) { .shortcuts { grid-template-columns: auto 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Fire TV Remote</h1>
+  <div class="status" id="status"><span class="dot"></span><span id="status-text">Starting…</span></div>
+</header>
+
+<div class="remote" aria-label="Remote">
+  <button class="key small power" data-key="power" title="Power / sleep">
+    <svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>
+  </button>
+
+  <div class="dpad">
+    <button class="dir up" data-key="up" data-hold="repeat" title="Up"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
+    <button class="dir down" data-key="down" data-hold="repeat" title="Down"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+    <button class="dir left" data-key="left" data-hold="repeat" title="Left"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+    <button class="dir right" data-key="right" data-hold="repeat" title="Right"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+    <button class="ok" data-key="ok" data-hold="long" title="Select (hold for options)">OK</button>
+  </div>
+
+  <div class="row">
+    <button class="key" data-key="back" title="Back"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+    <button class="key" data-key="home" data-hold="long" title="Home (hold for quick settings)"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11h14V9"/></svg></button>
+    <button class="key" data-key="menu" title="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+
+  <div class="row">
+    <button class="key" data-key="rewind" data-hold="repeat" title="Rewind"><svg viewBox="0 0 24 24"><path d="M11 6 4 12l7 6z"/><path d="M20 6l-7 6 7 6z"/></svg></button>
+    <button class="key" data-key="playpause" title="Play / pause"><svg viewBox="0 0 24 24"><path d="M4 5v14l9-7z"/><path d="M16 5v14M20 5v14"/></svg></button>
+    <button class="key" data-key="forward" data-hold="repeat" title="Fast forward"><svg viewBox="0 0 24 24"><path d="m13 6 7 6-7 6z"/><path d="m4 6 7 6-7 6z"/></svg></button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="row">
+    <button class="key" data-key="voldown" data-hold="repeat" title="Volume down"><svg viewBox="0 0 24 24"><path d="M4 9h3l5-4v14l-5-4H4z"/><path d="M16 12h5"/></svg></button>
+    <button class="key" data-key="mute" title="Mute"><svg viewBox="0 0 24 24"><path d="M4 9h3l5-4v14l-5-4H4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg></button>
+    <button class="key" data-key="volup" data-hold="repeat" title="Volume up"><svg viewBox="0 0 24 24"><path d="M4 9h3l5-4v14l-5-4H4z"/><path d="M16 12h5M18.5 9.5v5"/></svg></button>
+  </div>
+</div>
+
+<div class="panel">
+  <section class="card">
+    <h2>Screen <span class="spacer"></span>
+      <label class="toggle"><input type="checkbox" id="auto"> Live</label>
+      <button class="btn mini" id="snap">Refresh</button>
+    </h2>
+    <div class="screen"><span id="placeholder">Press Refresh to see what's on the TV</span><img id="shot" alt="" hidden></div>
+    <p>Netflix, Prime Video and other protected video show up black here. That's the DRM, the TV is fine.</p>
+  </section>
+
+  <section class="card">
+    <h2>Type on the TV</h2>
+    <form id="type" autocomplete="off">
+      <input type="text" name="text" placeholder="Search, Wi-Fi password, email…" spellcheck="false">
+      <button class="btn" type="submit">Send</button>
+    </form>
+    <p>Open a search or sign-in field on the TV first, so its keyboard is showing.</p>
+  </section>
+
+  <section class="card">
+    <h2>Keyboard</h2>
+    <div class="shortcuts">
+      <kbd>← ↑ → ↓</kbd><span>Move</span>
+      <kbd>Enter</kbd><span>OK</span>
+      <kbd>Esc</kbd><span>Back</span>
+      <kbd>H</kbd><span>Home</span>
+      <kbd>M</kbd><span>Menu</span>
+      <kbd>Space</kbd><span>Play / pause</span>
+      <kbd>, .</kbd><span>Rewind / forward</span>
+      <kbd>- =</kbd><span>Volume</span>
+    </div>
+  </section>
+</div>
+
+<script>
+const statusEl = document.getElementById('status');
+const statusText = document.getElementById('status-text');
+
+function post(path, body) {
+  return fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    .catch(() => {});
+}
+const send = (key, long = false) => post('/key', { key, long });
+
+function flash(el) {
+  el.classList.add('hit');
+  setTimeout(() => el.classList.remove('hit'), 120);
+}
+
+// Taps send on release. data-hold="repeat" keeps sending while held; data-hold="long" sends a long press instead.
+document.querySelectorAll('[data-key]').forEach(el => {
+  const key = el.dataset.key, hold = el.dataset.hold;
+  let delay = null, repeat = null, held = false;
+  const stop = () => { clearTimeout(delay); clearInterval(repeat); el.classList.remove('hit'); };
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('hit');
+    held = false;
+    if (hold === 'repeat') {
+      send(key);
+      delay = setTimeout(() => { repeat = setInterval(() => send(key), 150); }, 400);
+    } else if (hold === 'long') {
+      delay = setTimeout(() => { held = true; send(key, true); }, 600);
+    }
+  });
+  el.addEventListener('pointerup', () => { stop(); if (hold !== 'repeat' && !held) send(key); });
+  el.addEventListener('pointercancel', () => { stop(); held = true; });
+});
+
+const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', Enter: 'ok',
+  Escape: 'back', Backspace: 'back', h: 'home', m: 'menu', ' ': 'playpause', ',': 'rewind', '.': 'forward',
+  '-': 'voldown', '=': 'volup', '+': 'volup' };
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input') || e.metaKey || e.ctrlKey || e.altKey) return;
+  const key = KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+  if (!key) return;
+  e.preventDefault();
+  send(key);
+  const el = document.querySelector(`[data-key="${key}"]`);
+  if (el) flash(el);
+});
+
+document.getElementById('type').addEventListener('submit', e => {
+  e.preventDefault();
+  const input = e.target.elements.text;
+  if (input.value) post('/text', { text: input.value });
+  input.value = '';
+  input.blur();
+});
+
+const shot = document.getElementById('shot'), placeholder = document.getElementById('placeholder');
+const auto = document.getElementById('auto');
+function snap() {
+  return new Promise(resolve => {
+    const next = new Image();
+    next.onload = () => { shot.src = next.src; shot.hidden = false; placeholder.hidden = true; resolve(); };
+    next.onerror = () => { placeholder.textContent = "Couldn't grab the screen. Is the TV connected?"; resolve(); };
+    next.src = '/screen.png?t=' + Date.now();
+  });
+}
+let looping = false;
+async function live() {
+  if (looping) return;
+  looping = true;
+  while (auto.checked) {
+    await snap();
+    await new Promise(r => setTimeout(r, 800));
+  }
+  looping = false;
+}
+document.getElementById('snap').addEventListener('click', e => { e.currentTarget.blur(); snap(); });
+auto.addEventListener('change', () => { auto.blur(); live(); });
+
+async function poll() {
+  try {
+    const s = await (await fetch('/status')).json();
+    statusEl.dataset.state = s.state;
+    statusText.textContent =
+      s.state === 'connected' ? `Connected to ${s.model} at ${s.host}` :
+      s.state === 'firetv' ? `Connected to the Fire TV at ${s.host}. Arrows, OK, Back, Home and Menu work; screen preview and typing need ADB debugging.` :
+      s.state === 'searching' ? 'Looking for your Fire TV… Turn it on, then Settings → My Fire TV → Developer options → ADB debugging: ON.' :
+      s.state === 'connecting' ? `Connecting to ${s.host}… If the TV asks "Allow USB debugging?", tick Always allow and choose OK.` :
+      `Can't reach ${s.host} (${s.error}). Check ADB debugging is on, then press any button to retry.`;
+  } catch {
+    statusEl.dataset.state = 'error';
+    statusText.textContent = 'The remote server stopped. Start tools/remote.py again.';
+  }
+  setTimeout(poll, 2000);
+}
+poll();
+</script>
+</body>
+</html>

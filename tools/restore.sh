@@ -4,6 +4,7 @@
 # and the animation scales go back to their recorded values. Pass the same list you ran disable with.
 #
 # Usage: TV_HOST=192.168.1.50 tools/restore.sh examples/xiaomi-mi-tv-4a/debloat.txt [stock.launcher.package]
+# HIDE=1 unhides instead of enabling, for a list applied with HIDE=1 tools/disable.sh (Fire OS 5).
 set -euo pipefail
 LIST="${1:?usage: restore.sh <debloat list> [stock launcher package]}"
 # Resolve the list against the caller's directory before moving into the repo. Git Bash's pwd says

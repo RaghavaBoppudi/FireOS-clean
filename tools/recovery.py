@@ -94,15 +94,19 @@ def shell(dev, command):
 
 
 def query_packages(dev):
-    installed = {line.split(":", 1)[1].strip()
-                 for line in shell(dev, "pm list packages").splitlines()
-                 if line.startswith("package:")}
-    if not installed:
+    def listed(command):
+        return {line.split(":", 1)[1].strip()
+                for line in shell(dev, command).splitlines()
+                if line.startswith("package:")}
+
+    visible = listed("pm list packages")
+    if not visible:
         raise SystemExit("the TV returned no packages, so nothing was recorded and nothing will be "
                          "disabled. Check the connection (tools/tv.py --probe) and try again.")
-    disabled = {line.split(":", 1)[1].strip()
-                for line in shell(dev, "pm list packages -d").splitlines()
-                if line.startswith("package:")}
+    # A hidden package (pm hide, see HIDE=1 in disable.sh) drops out of the plain list but stays in -u.
+    # It is off already, so record it as disabled and undo leaves it alone.
+    installed = visible | listed("pm list packages -u")
+    disabled = listed("pm list packages -d") | (installed - visible)
     return installed, disabled
 
 
@@ -190,6 +194,11 @@ def save(list_path, host):
     return 0
 
 
+# Fire OS 5 refuses pm disable-user from the shell but allows pm hide; HIDE=1 (disable.sh, restore.sh)
+# switches both ways of the undo over to it.
+UNDO = "pm unhide" if os.environ.get("HIDE") else "pm enable"
+
+
 def restore_commands(list_path, stock, host):
     """The batch that puts the recorded states back, one command per line."""
     packages = read_list(list_path)
@@ -205,9 +214,9 @@ def restore_commands(list_path, stock, host):
             "defaults. Packages that were already disabled before cleanup will be enabled too:\n"
             "check the list before running this.\n")
         for name in packages:
-            commands.append(f"pm enable {name}")
+            commands.append(f"{UNDO} {name}")
         if stock:
-            commands.append(f"pm enable {stock}")
+            commands.append(f"{UNDO} {stock}")
         commands.append(f"cmd package set-home-activity --user 0 $(cmd package resolve-activity "
                         f"--brief -a android.intent.action.MAIN -c android.intent.category.HOME "
                         f"{stock or 'com.google.android.tvlauncher'} | tail -n 1)")
@@ -219,7 +228,7 @@ def restore_commands(list_path, stock, host):
     states = record["packages"]
     re_enable = [name for name, state in states.items() if state == "enabled"]
     for name in re_enable:
-        commands.append(f"pm enable {name}")
+        commands.append(f"{UNDO} {name}")
     untouched = [(name, state) for name, state in states.items() if state != "enabled"]
     for name, state in untouched:
         sys.stderr.write(f"  leaving {name} alone ({state} when the record was taken)\n")
@@ -228,7 +237,7 @@ def restore_commands(list_path, stock, host):
     # have disabled it even when it was not the recorded Home (e.g. the custom launcher owned Home).
     fallback = stock or "com.google.android.tvlauncher"
     if states.get(fallback) != "disabled" and fallback not in re_enable:
-        commands.append(f"pm enable {fallback}")
+        commands.append(f"{UNDO} {fallback}")
 
     home = record.get("home")
     if home and home.split("/", 1)[0] != CUSTOM_LAUNCHER:

@@ -1,3 +1,69 @@
+# Debloat a Fire TV Stick with Claude Code (no remote needed)
+
+Everything here was done by [Claude Code](https://claude.com/claude-code) on a real **Amazon Fire TV Stick
+2nd gen** (AFTT, Fire OS 5.2.9.5, 1 GB RAM) that had **no physical remote**, all over Wi-Fi from a Mac. It is
+built on [CleanYourTV](https://github.com/Gathin23/cleanyourtv) (MIT), whose README follows below, and adds
+what a Fire TV needed:
+
+- **A usable remote in your browser** (`tools/remote.py`): D-pad, OK, Back, Home, Menu, media and volume keys,
+  arrow-key shortcuts, typing into the TV, and a live screen preview. It works over ADB, or with no ADB at all
+  through the same local API Amazon's Fire TV phone app uses (`tools/firetv.py`), which is how the stick was set
+  up without a remote.
+- **A YouTube-only home screen** (`firehome/`): a 17 KB app with a clock, one YouTube tile, Settings and a way
+  back to Amazon's home. It replaces Amazon's ad-filled home, which Fire OS will not let you remove.
+- **Fire OS 5 support** in the debloat scripts (`HIDE=1`) and a tested list for the stick
+  (`examples/amazon-fire-tv-stick-2nd-gen-aftt/`).
+
+## Quick start
+
+```bash
+git clone https://github.com/whyashthakker/debloat-fire-stick-claude-code.git && cd debloat-fire-stick-claude-code
+python3 -m venv tools/venv && tools/venv/bin/pip install -r tools/requirements.txt
+export TV_HOST=192.168.1.50                      # the stick: Settings > My Fire TV > About > Network
+```
+
+**No remote? Pair the browser remote first.** The stick shows a 4-digit PIN on screen:
+
+```bash
+python3 tools/firetv.py pair                     # PIN appears on the TV
+python3 tools/firetv.py verify 1234              # the PIN you see
+tools/venv/bin/python -I tools/remote.py --no-adb   # opens http://127.0.0.1:8765
+```
+
+Use it to turn on **Settings > My Fire TV > Developer options > ADB debugging** (no Developer options? My Fire
+TV > About, press OK seven times on the device name), then accept "Allow USB debugging?" on the TV. From here
+you can also paste [`PROMPT.md`](PROMPT.md) into Claude Code and let it do the rest.
+
+```bash
+tools/venv/bin/python -I tools/tv.py --probe                                    # model, Fire OS, Android
+HIDE=1 tools/disable.sh examples/amazon-fire-tv-stick-2nd-gen-aftt/debloat.txt   # back up, then hide
+firehome/install.sh                                                             # YouTube-only home
+```
+
+Undo: `HIDE=1 tools/restore.sh examples/amazon-fire-tv-stick-2nd-gen-aftt/debloat.txt com.amazon.tv.launcher`
+and `firehome/install.sh --remove`. Fire OS 5 allows one ADB connection at a time, so run the remote with
+`--no-adb` while the scripts work.
+
+## What Fire OS 5.2.9.5 allows, and what it blocks
+
+| Tried | Result on the stick |
+|---|---|
+| `pm disable-user` | Refused for every package: `SecurityException: Permission Denial` |
+| `pm hide` | Works for apps you installed, refused for Amazon's system apps |
+| `pm uninstall -k --user 0` | Refused: `DELETE_FAILED_INTERNAL_ERROR` (and not undoable on Android 5.1 anyway) |
+| Accessibility service over ADB | Silently dropped, so the home watcher reads the system log instead (`READ_LOGS`) |
+| Animation scales, `pm grant READ_LOGS` | Allowed |
+
+So on this firmware the debloat hid seven unused apps (Netflix, JioHotstar, SonyLIV, Zee5, Jio and two unknown
+Appstore apps) and sped up animations; Prime Video, Alexa, Amazon's ads and telemetry stay installed. The home
+screen swap is what makes the stick feel lighter: Amazon's home, its full-screen ads and sponsored tiles never
+come up. Newer Fire OS (6 and 7) lets ADB disable much more, see the Fire TV lists in [`examples/`](examples/).
+
+**With no remote, Wi-Fi is the only way in**, so the list keeps every Wi-Fi provisioning, remote-API, Bluetooth
+and pairing service. A factory reset is not a fallback either: setup after a reset needs a physical remote.
+
+---
+
 <p align="center">
   <a href="https://cleanyour.tv"><img src="https://raw.githubusercontent.com/Gathin23/cleanyourtv/main/docs/banner.png" alt="CleanYourTV. Your TV, minus the ads." width="800"></a>
 </p>
@@ -132,6 +198,7 @@ Redmi · SANYO · Thomson · Toshiba Fire TV · Vu · JMGO, Portronics, Stellamo
 | TV | OS |
 |---|---|
 | AiPro2K (Expressluck, dongnae; Changhong AI PONT family) | Android TV 14 |
+| Amazon Fire TV Stick 2nd gen (AFTT, tank), India | Fire OS 5.2.9.5 / Android 5.1 |
 | Amazon Fire TV Stick 4K, 1st gen 2018 (AFTMM, mantis) | Fire OS 6.7.1.1 / Android 7.1 |
 | BenQ E55-735 (Changhong AI PONT, DVB96BQ) | Google TV 14 |
 | BenQ E55-750 (Changhong AI PONT, DVB96BQ) | Google TV (Android 11) |

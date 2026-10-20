@@ -54,7 +54,11 @@ fi
 # and a retry must not overwrite the one taken before the first change (#239).
 "$PY" -I tools/recovery.py --save "$LIST"
 
+# Fire OS 5 answers every pm disable-user from the shell with "Permission Denial" but lets it hide
+# packages, which stops them just the same. HIDE=1 hides instead; restore.sh with HIDE=1 unhides.
+OFF="pm disable-user --user 0"
+[ -n "${HIDE:-}" ] && OFF="pm hide"
 {
-  [ -n "$PKGS" ] && printf '%s\n' "$PKGS" | sed 's/^/pm disable-user --user 0 /'
+  [ -n "$PKGS" ] && printf '%s\n' "$PKGS" | sed "s/^/$OFF /"
   echo "pm list packages -d"
 } | "$PY" -I tools/tv.py --batch

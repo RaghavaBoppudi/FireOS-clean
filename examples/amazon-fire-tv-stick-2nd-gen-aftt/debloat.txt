@@ -1,0 +1,106 @@
+# Amazon Fire TV Stick 2nd gen (AFTT, codename tank), Fire OS 5.2.9.5 (688805020), Android 5.1.1 (SDK 22), 1 GB RAM, India
+# FIRE OS: com.amazon.tv.launcher keeps Home and launcher/ needs Android 8; firehome/ (minSdk 22) covers Home instead.
+#
+# Apply:   HIDE=1 TV_HOST=<stick ip> tools/disable.sh examples/amazon-fire-tv-stick-2nd-gen-aftt/debloat.txt
+# Undo:    HIDE=1 TV_HOST=<stick ip> tools/restore.sh examples/amazon-fire-tv-stick-2nd-gen-aftt/debloat.txt com.amazon.tv.launcher
+# HIDE=1 matters: Fire OS 5.2.9.5 answers every pm disable-user from the shell, system or third-party package, with
+# "SecurityException: Permission Denial: attempt to change component state". `pm hide` works for third-party apps
+# ("new hidden state: true") and `pm unhide` undoes it, but for every system package below it answers
+# "new hidden state: false" and changes nothing. So on this firmware only the batch-3 apps the owner installed
+# (Netflix, JioHotstar, SonyLIV, Zee5, Jio, the two com.kyy apps) were actually hidden; Prime Video is a system app
+# and stays. The system entries are kept so the list is complete for firmware that allows more; re-running is harmless.
+# Nothing is uninstalled: this pm has no install-existing, so a system package uninstalled for user 0 comes back only
+# with a factory reset, and setup after a reset needs a physical remote.
+# What did help on top: animation scales at 0.5 (settings put global window_animation_scale / transition_animation_scale
+# / animator_duration_scale 0.5; restore.sh puts back the recorded values), and firehome/ so Amazon's home with its
+# full-screen ads and sponsored rows is never on screen. MemAvailable went from ~138 MB to ~167 MB of 895 MB.
+# Comment out any line you want to keep.
+# ADB on Fire OS 5: Settings > My Fire TV > Developer options > ADB debugging. Port 5555, "Allow USB debugging?" once.
+# This adbd takes one connection at a time: close tools/remote.py before running anything else with tools/tv.py.
+#
+# NO REMOTE? This stick was set up without one, driven through tools/firetv.py (the Fire TV phone app's API on
+# ports 8009/8080). So kept on purpose: com.amazon.dialservice, com.amazon.tv.turnstile (DIAL launches),
+# com.amazon.firerestapiframework, com.amazon.storm.lightning.services and .tutorial, com.amazon.whisperlink.core.android,
+# com.amazon.whisperplay.*, com.amazon.ssdpservice, com.amazon.communication.discovery, com.amazon.awvflingreceiver,
+# and the remote/Bluetooth side (autopairservice, bluetoothinternals, device.blepa, device.bluetoothpa,
+# fireinputdevices, tv.keypolicymanager, device.rdmapplication: remote battery and firmware) for a replacement remote.
+# Also kept: com.amazon.tv.launcher, settings (tv.settings.v2, tv.settings.core, device.settings), com.amazon.tv.ime,
+# com.amazon.venezia (Appstore), account sign-in (com.amazon.imp, com.amazon.dcp, identity.*, com.amazon.aca),
+# OTA updates, CEC (tv.devicecontrol), webview, screensaver, profile picker, TTS and accessibility.
+# The owner watches YouTube (com.amazon.firetv.youtube), so every other streaming app is in batch 3.
+#
+# Applied in three runs (batch 1, then 2 and 3), checked with screenshots, YouTube launching and the remote API
+# answering after each. disable.sh records the state of names a list gains before switching them off.
+
+# --- batch 1: Amazon telemetry, metrics, logs, crash and usage reporting
+com.amazon.client.metrics
+com.amazon.client.metrics.api
+com.amazon.device.metrics
+com.amazon.metrics.api
+com.amazon.minerva.client.api
+com.amazon.tv.fw.metrics
+com.amazon.perfcollection
+com.amazon.device.logmanager
+com.amazon.device.crashmanager
+com.amazon.dp.logger
+com.amazon.diode                        # on-device diagnostics uploader
+com.amazon.ceviche                      # data collection pipelines
+com.amazon.tv.developer.dataservice     # content personalization data for third-party apps
+com.fireos.usagestats.proxy             # reports app usage to Amazon
+# com.amazon.wifilocker                 # uploads Wi-Fi passwords to Amazon; kept: with no remote, Wi-Fi is the only way in
+
+# --- batch 1: ads, sponsored rows, promos
+com.amazon.kso.blackbird                # launcher ad sync (sponsored banner and rows)
+com.amazon.ftvads.deeplinking           # ad deep links
+com.amazon.hybridadidservice            # advertising ID
+com.amazon.tv.easyupgrade               # "upgrade your Fire TV" promos
+# com.amazon.device.sale.service        # deal campaigns; kept: runs as the system uid
+com.amazon.shoptv.client                # Amazon Shopping on TV
+com.amazon.shoptv.firetv.client
+com.amazon.alexashopping
+com.amazon.kor.demo                     # retail store demo mode
+com.amazon.tv.releasenotes              # "what's new"
+com.amazon.uxnotification               # promo popups
+com.amazon.providers.contentsupport
+
+# --- batch 2: preloaded Amazon apps and services not used
+com.amazon.tv.livetv                    # Live tab and guide
+com.amazon.franktvinput                 # live TV input feeding the Live tab
+com.amazon.gamehub                      # games hub
+com.amazon.imdb.tv.android.app          # Freevee stub
+com.amazon.minitv.android.app           # miniTV stub
+com.imdb.livingroom.firetv              # IMDb
+com.amazon.tahoe                        # Amazon Kids
+com.amazon.bueller.music                # Amazon Music
+com.amazon.bueller.photos               # Amazon Photos
+com.amazon.cloud9                       # Silk browser
+com.amazon.tv.website_launcher          # opens websites in Silk
+com.amazon.tmm.tutorial                 # remote tutorial
+com.amazon.wha.mediabrowserservice      # multi-room music
+# com.amazon.whisperjoin.middleware.np  # frustration-free setup; these three kept, they provision Wi-Fi
+# com.amazon.whisperjoin.wss.wifiprovisioner
+# com.amazon.tv.ffsprovisioneeclient
+com.amazon.ods.kindleconnect            # "show on Fire TV" from Echo / Fire tablet
+
+# --- batch 2: Alexa, off by choice (no remote, so no mic anyway)
+com.amazon.vizzini                      # Alexa voice
+com.amazon.cardinal                     # Alexa screens
+com.amazon.tv.alexaalerts               # alarms, timers, reminders
+com.amazon.tv.alexanotifications
+com.amazon.alexa.externalmediaplayer.fireos
+com.amazon.alexamediaplayer.runtime.ftv
+com.amazon.alexa.datastore.app
+
+# --- batch 2: screen mirroring, off by choice (YouTube casting goes through DIAL, which stays)
+com.amazon.wcast.sink                   # Miracast sink
+
+# --- batch 3: streaming apps not used (kept: YouTube)
+com.amazon.avod                         # Prime Video
+com.amazon.firebat                      # Prime Video living-room app
+com.netflix.ninja                       # Netflix
+in.startv.hotstar                       # JioHotstar
+com.onemainstream.sonyliv.android       # SonyLIV
+com.zee5.amazon                         # Zee5
+com.jio.media.stb.ondemand              # Jio on demand
+com.kyy.sportstube                      # Appstore video app, unknown to the owner
+com.kyy.tubevideosB                     # Appstore video app, unknown to the owner
