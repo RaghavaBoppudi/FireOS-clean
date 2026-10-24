@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A YouTube-only home for Fire OS, which will not hand Home to another app. HomeWatcher follows the system
+<!-- An Apple TV-style app-only home for Fire OS, which will not hand Home to another app. HomeWatcher follows the system
      log (READ_LOGS, granted over ADB by install.sh) and opens HomeActivity whenever Amazon's home is started. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.firehome">
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -12,7 +15,7 @@
         android:icon="@drawable/icon"
         android:banner="@drawable/banner"
         android:allowBackup="false"
-        android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        android:theme="@style/HomeTheme">
 
         <activity
             android:name=".HomeActivity"
@@ -27,7 +30,26 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".AllAppsActivity"
+            android:excludeFromRecents="true"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:excludeFromRecents="true"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize" />
+
         <service android:name=".HomeWatcher" android:exported="false" />
+
+        <service android:name=".BootListener" android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <!-- BOOT_COMPLETED goes to ~100 receivers one at a time on a Fire TV Stick; at default priority this
              one waited minutes. Ordered broadcasts go out by priority, so ask to be near the front. -->

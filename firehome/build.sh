@@ -12,7 +12,8 @@ JAR="$(ls -d "$SDK"/platforms/android-* | sort -V | tail -1)/android.jar"
 rm -rf build && mkdir -p build/gen build/classes build/dex
 "$BT/aapt2" compile --dir res -o build/res.zip
 # minSdk 22 is Fire OS 5 (Android 5.1), the oldest Fire TV that still takes ADB from a computer
-"$BT/aapt2" link -o build/unsigned.apk -I "$JAR" --manifest AndroidManifest.xml --java build/gen \
+ASSETS=; [ -d assets ] && ASSETS="-A assets"   # the background photographs
+"$BT/aapt2" link -o build/unsigned.apk -I "$JAR" --manifest AndroidManifest.xml --java build/gen $ASSETS \
   --min-sdk-version 22 --target-sdk-version 22 --version-code 1 --version-name 1.0 build/res.zip
 javac -nowarn --release 8 -classpath "$JAR" -d build/classes $(find src build/gen -name '*.java')
 "$BT/d8" --min-api 22 --lib "$JAR" --output build/dex $(find build/classes -name '*.class')

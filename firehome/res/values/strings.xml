@@ -1,4 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">YouTube Home</string>
+    <string name="app_name">Home</string>
+    <string name="launching">Launching Home</string>
+    <string name="appstore">Appstore</string>
+    <string name="settings">Settings</string>
+    <string name="all_apps">All apps</string>
+    <string name="settings_network">Network</string>
+    <string name="settings_controllers">Controllers &amp; Bluetooth</string>
+    <string name="settings_applications">Applications</string>
+    <string name="settings_device">My Fire TV</string>
+    <string name="settings_background">Background</string>
+    <string name="settings_refresh">Refresh wallpapers</string>
+    <string name="wallpapers_checking">Checking GitHub…</string>
+    <string name="wallpapers_not_set">No wallpaper repository is set: using the built-in wallpapers</string>
+    <string name="wallpapers_current">Wallpapers are up to date</string>
+    <string name="wallpapers_empty">The repository has no images yet: using the built-in wallpapers</string>
+    <string name="wallpapers_offline">Couldn\'t reach GitHub</string>
+    <plurals name="wallpapers_synced">
+        <item quantity="one">%d wallpaper from GitHub</item>
+        <item quantity="other">%d wallpapers from GitHub</item>
+    </plurals>
+    <string name="credit">\u00a9 %1$s</string>
+    <!-- shown inside the Background tile's frame; same order as interval_seconds in integers.xml -->
+    <string-array name="interval_badges">
+        <item>30 sec</item>
+        <item>1 min</item>
+        <item>5 min</item>
+        <item>15 min</item>
+        <item>30 min</item>
+        <item>1 hr</item>
+        <item>3 hr</item>
+        <item>6 hr</item>
+        <item>12 hr</item>
+        <item>Daily</item>
+    </string-array>
+    <string name="amazon_home_notice">Amazon\'s home for the next 10 minutes</string>
+    <string name="error_open">%1$s couldn\'t be opened.</string>
 </resources>

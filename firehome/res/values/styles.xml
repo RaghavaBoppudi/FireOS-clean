@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The window is the ground colour from the first frame, with no transition of its own, so opening the
+         home never flashes white or slides in -->
+    <style name="HomeTheme" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/ground</item>
+        <item name="android:colorBackground">@color/ground</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <style name="Text">
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Text.Header">
+        <item name="android:textSize">@dimen/text_header</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+    </style>
+
+    <style name="Text.Secondary">
+        <item name="android:textSize">@dimen/text_secondary</item>
+        <item name="android:textColor">@color/ink_dim</item>
+    </style>
+
+    <!-- Text that sits straight on the photograph gets a soft shadow, so it reads over ice and sky as well as over forest -->
+    <style name="Text.OnPhoto">
+        <item name="android:shadowColor">#99000000</item>
+        <item name="android:shadowRadius">8</item>
+        <item name="android:shadowDy">1</item>
+    </style>
+
+    <style name="Text.Body" parent="Text.OnPhoto">
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:textColor">@color/ink</item>
+    </style>
+
+    <style name="Text.Timer">
+        <item name="android:textSize">@dimen/text_timer</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+    </style>
+
+    <style name="Text.TimerUnit">
+        <item name="android:textSize">@dimen/text_timer_unit</item>
+        <item name="android:textColor">@color/ink_dim</item>
+    </style>
+
+    <style name="Text.Credit" parent="Text.OnPhoto">
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:textColor">@color/ink_dim</item>
+    </style>
+</resources>

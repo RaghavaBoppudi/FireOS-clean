@@ -14,10 +14,15 @@ if [ "${1:-}" = "--remove" ]; then
 fi
 
 firehome/build.sh
-tv --push firehome/build/firehome.apk /data/local/tmp/firehome.apk
-# READ_LOGS lets the watcher see Home presses. Fire OS drops accessibility services set over ADB, but grants this.
+# the APK carries the background photos, which is too much for the ADB push in tv.py; b64push.py is quick and checks it arrived
+"$PY" -I tools/b64push.py firehome/build/firehome.apk /data/local/tmp/firehome.apk
+# Fire OS drops accessibility services set over ADB, but grants these: READ_LOGS lets the watcher see Home
+# presses, SYSTEM_ALERT_WINDOW lets it cover Amazon's home meanwhile, GET_USAGE_STATS orders the icons by use.
 printf '%s\n' \
   "pm install -r /data/local/tmp/firehome.apk" \
   "rm /data/local/tmp/firehome.apk" \
   "pm grant com.firehome android.permission.READ_LOGS" \
+  "cmd notification allow_listener com.firehome/com.firehome.BootListener" \
+  "appops set com.firehome SYSTEM_ALERT_WINDOW allow" \
+  "appops set com.firehome GET_USAGE_STATS allow" \
   "am start -n com.firehome/.HomeActivity" | tv --batch
