@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ground">#FF0B0B0C</color>
+    <color name="ink">#FFF4F4F2</color>
+    <color name="ink_dim">#B3F4F4F2</color>
+
+    <!-- The only colour in the interface is the photograph: everything else is white on a dark veil -->
+    <color name="veil">#6614161E</color>
+    <color name="plate">#33FFFFFF</color>
+    <color name="scrim">#8C000000</color>
+</resources>

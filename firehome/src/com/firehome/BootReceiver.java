@@ -4,7 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-/** Starts the watcher at boot; it opens HomeActivity if Amazon's home is what came up (see HomeWatcher.catchUp). */
+/**
+ * Starts the watcher at boot if BootListener has not already; it opens HomeActivity if Amazon's home is what
+ * came up (see HomeWatcher.catchUp). Starting a service that is already running does nothing.
+ */
 public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {

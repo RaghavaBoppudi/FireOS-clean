@@ -1,0 +1,90 @@
+# Amazon Fire TV Stick Lite (AFTSS, codename sheldon), Fire OS 7 / Android 9 (SDK 28), build PS7717.5741N
+#
+# Apply:   TV_HOST=<stick ip> tools/disable.sh examples/amazon-fire-tv-stick-lite-aftss/debloat.txt
+# Undo:    TV_HOST=<stick ip> tools/restore.sh examples/amazon-fire-tv-stick-lite-aftss/debloat.txt com.amazon.tv.launcher
+# Everything is DISABLED for user 0, never uninstalled. Comment out any line you want to keep.
+#
+# Kept on purpose: the saved Wi-Fi network belongs to com.amazon.tv.oobe and com.amazon.tv.settings.v2, so both stay
+# on; Wi-Fi provisioning (wifilocker, ffsprovisioneeclient, whisperjoin, net.smartconnect, connectivitycontroller);
+# remote and Bluetooth (fireinputdevices, bluetooth*, autopairservice, accessoryconfigservice, device.blepa, tcomm,
+# whisperplay/whisperlink, dialservice); Appstore (venezia, tigris, android.marketplace, device.sync); launcher,
+# settings, keyboard, OTA. Apps this owner uses: Netflix, YouTube, Prime Video, Wholphin (Jellyfin), Apple TV.
+
+# Streaming apps and tools not used (personal choice)
+com.tubitv.ott
+com.xumo.xumo.tv
+com.hulu.plus
+com.hbo.hbonow
+com.sling
+in.startv.hotstar
+com.disney.disneyplus
+com.onemainstream.sonyliv.android
+com.zee5.amazon
+com.aajtak.firetv
+com.calientetv                          # Caliente TV (ViewLift)
+us.electronic.docast                    # DoCast screen casting
+org.videolan.vlc
+com.surfshark.vpnclient.android
+com.esaba.downloader
+io.github.visnkmr.wirelessexplorer
+
+# Amazon telemetry, metrics and logs. Protected on Fire OS 6/7 per the other lists, so left out:
+# client.metrics, device.metrics, minerva.client.api, device.logmanager, device.crashmanager, diode,
+# fireos.usagestats.proxy
+com.amazon.client.metrics.api
+com.amazon.tv.fw.metrics
+com.amazon.neo.minerva
+com.amazon.neo.minerva.logcat
+com.amazon.wirelessmetrics.service
+com.amazon.perfcollection
+com.amazon.perfc
+com.amazon.dp.logger
+com.amazon.ceviche                      # data collection pipelines
+com.amazon.tv.developer.dataservice     # content personalization data for third-party apps
+
+# Ads, shopping, sponsored rows and recommendations (com.amazon.ftvads.deeplinking is protected, left out)
+com.amazon.kso.blackbird                # launcher ad sync / bidding (sponsored banner and rows)
+com.amazon.sneakpeek                    # sponsored "Sneak Peek" previews
+com.amazon.hybridadidservice            # advertising ID service
+com.amazon.shoptv.client                # Amazon Shopping on TV
+com.amazon.shoptv.firetv.client
+com.amazon.tv.acr                       # content recognition
+com.amazon.media.recommendations
+com.amazon.tv.easyupgrade               # "upgrade your Fire TV" promos
+com.amazon.privacypassservice
+
+# Amazon apps, Live tab, tutorials and promos not used (personal choice)
+com.amazon.bueller.music                # Amazon Music
+com.amazon.bueller.photos               # Amazon Photos
+com.amazon.cloud9                       # Silk browser
+com.amazon.tv.website_launcher          # opens websites in Silk
+com.amazon.minitv.android.app           # miniTV
+com.amazon.naatyam
+com.amazon.gamehub                      # games hub / Luna cards
+com.amazon.tahoe                        # Amazon Kids
+com.amazon.tv.livetv                    # Live tab and guide
+com.amazon.franktvinput                 # live TV input feeding the Live tab
+com.amazon.livedeviceservice
+com.amazon.hedwig                       # Fire TV Channels
+com.amazon.storm.lightning.tutorial
+com.amazon.tmm.tutorial
+com.amazon.tv.releasenotes
+com.amazon.cast.sink                    # Miracast screen-mirroring receiver
+com.amazon.audiohome                    # whole-home audio
+com.amazon.whad
+com.amazon.whasettings
+com.amazon.wha.mediabrowserservice
+com.amazon.ods.kindleconnect            # "show on Fire TV" from Echo / Fire tablet
+
+# Alexa extras (owner does not use Alexa)
+com.amazon.tv.alexaalerts               # alarms, timers, reminders
+com.amazon.tv.alexanotifications
+com.amazon.alexa.externalmediaplayer.fireos   # Alexa music playback
+com.amazon.alexamediaplayer.runtime.ftv
+com.amazon.aiondec                      # Alexa skill connections
+com.amazon.firetv.androidskillconnectioncapability
+com.amazon.spotify.mediabrowserservice
+com.amazon.comms.starktachyon           # Alexa calling / drop in
+
+# Alexa voice search (remote mic button). Owner does not use it; comment out to get voice search back.
+com.amazon.vizzini

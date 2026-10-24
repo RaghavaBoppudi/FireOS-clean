@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="tile_animation_ms">160</integer>
+    <integer name="photo_fade_ms">1200</integer>
+    <integer name="grid_columns">6</integer>
+    <integer name="overlay_min_ms">350</integer>
+    <integer name="overlay_settle_ms">300</integer>
+    <integer name="overlay_fade_ms">200</integer>
+    <integer name="overlay_timeout_ms">15000</integer>
+    <integer name="interval_default_seconds">1800</integer>
+
+    <!-- How often the wallpaper changes, shortest first; same order as interval_badges in strings.xml -->
+    <integer-array name="interval_seconds">
+        <item>30</item>
+        <item>60</item>
+        <item>300</item>
+        <item>900</item>
+        <item>1800</item>
+        <item>3600</item>
+        <item>10800</item>
+        <item>21600</item>
+        <item>43200</item>
+        <item>86400</item>
+    </integer-array>
+</resources>

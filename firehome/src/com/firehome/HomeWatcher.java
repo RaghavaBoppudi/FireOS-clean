@@ -3,7 +3,9 @@ package com.firehome;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.SystemClock;
 
 import java.io.BufferedReader;
@@ -18,11 +20,40 @@ import java.io.InputStreamReader;
 public class HomeWatcher extends Service {
     private static long pausedUntil;
     private static long lastLaunch;
+    private static HomeWatcher running;
+    private final Handler main = new Handler(Looper.getMainLooper());
+    private LaunchOverlay overlay;
     private Thread reader;
 
     /** Leave Amazon's home alone for a while, for the "Fire TV home" button. */
     static void pause(long millis) {
         pausedUntil = SystemClock.elapsedRealtime() + millis;
+    }
+
+    /** HomeActivity is on screen: the "Launching Home" cover, if one is up, can come down. */
+    static void homeShown() {
+        final HomeWatcher watcher = running;
+        if (watcher != null) {
+            watcher.main.post(new Runnable() {
+                @Override
+                public void run() {
+                    watcher.overlay.dismiss();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        running = this;
+        overlay = new LaunchOverlay(this, main);
+    }
+
+    @Override
+    public void onDestroy() {
+        running = null;
+        super.onDestroy();
     }
 
     @Override
@@ -101,6 +132,13 @@ public class HomeWatcher extends Service {
             return;
         }
         lastLaunch = now;
+        // cover Amazon's home first: its window is not drawn yet when its start shows up in the log
+        main.post(new Runnable() {
+            @Override
+            public void run() {
+                overlay.show();
+            }
+        });
         startActivity(new Intent(this, HomeActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
     }

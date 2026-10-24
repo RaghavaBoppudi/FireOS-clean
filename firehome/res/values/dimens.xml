@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen edges: one margin on the left and right, which also keeps clear of TV overscan -->
+    <dimen name="margin">70dp</dimen>
+
+    <!-- The top bar: the date and time, the page title and the buttons share one row, centred on one line -->
+    <dimen name="bar_top">32dp</dimen>
+    <dimen name="button_size">40dp</dimen>
+    <dimen name="button_glyph">20dp</dimen>
+    <dimen name="button_gap">4dp</dimen>
+    <!-- the margin less the button's own padding, so the glyph's edge, not the button's, sits on the margin -->
+    <dimen name="buttons_end">60dp</dimen>
+
+    <!-- The dock sits low, like a desktop dock, and hugs its tiles: the same inset on every side, so the wallpaper
+         has the screen. Its corner and the tile's share a centre. It clears the credit line (credit_bottom + a line) -->
+    <dimen name="dock_margin">50dp</dimen>
+    <dimen name="dock_bottom">32dp</dimen>
+    <dimen name="dock_padding">8dp</dimen>
+    <dimen name="panel_radius">20dp</dimen>
+    <dimen name="fade">16dp</dimen>
+
+    <!-- Tiles are equal slots with equal gaps -->
+    <dimen name="tile_width">112dp</dimen>
+    <dimen name="tile_height">76dp</dimen>
+    <dimen name="tile_gap">6dp</dimen>
+    <dimen name="tile_radius">12dp</dimen>
+    <!-- every mark, whatever it shows, is fitted into this box in the middle of its slot -->
+    <dimen name="mark_width">80dp</dimen>
+    <dimen name="mark_height">44dp</dimen>
+
+    <dimen name="caption_gap">12dp</dimen>
+    <dimen name="credit_bottom">14dp</dimen>
+    <!-- All apps keeps clear of the top bar: its bottom edge (bar_top + button_size) plus a gap -->
+    <dimen name="grid_top">120dp</dimen>
+    <!-- the "Launching Home" text sits on the dock's middle: dock_bottom plus half the dock (92dp), less half a line -->
+    <dimen name="launching_bottom">68dp</dimen>
+
+    <!-- Type scale -->
+    <dimen name="text_header">22sp</dimen>
+    <dimen name="text_body">18sp</dimen>
+    <dimen name="text_secondary">14sp</dimen>
+    <dimen name="text_caption">12sp</dimen>
+    <!-- the timer inside the Background tile's frame: a number over its unit -->
+    <dimen name="text_timer">13sp</dimen>
+    <dimen name="text_timer_unit">9sp</dimen>
+</resources>

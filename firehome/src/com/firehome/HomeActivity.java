@@ -2,72 +2,117 @@ package com.firehome;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/** A home screen with one thing on it, YouTube. HomeWatcher brings it up whenever Amazon's home is started. */
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The home screen: date and time, buttons for all apps and settings, and a frosted dock with one slot per TV app,
+ * the one used last first, over a photograph that changes through the day. Apps switched off by
+ * tools/disable.sh are not listed. HomeWatcher brings this up whenever Amazon's home is started.
+ *
+ * The screens that share this layout of a shelf of tiles under a wash, Settings and All apps, extend it.
+ */
 public class HomeActivity extends Activity {
-    static final String YOUTUBE = "com.amazon.firetv.youtube";
     static final String AMAZON_HOME = "com.amazon.tv.launcher";
-    // "Fire TV home" starts Amazon's home the way a Home press does, so the watcher stands down this long
+    // Menu on the remote opens Amazon's home this long, the way out if the stick needs it
     private static final long AMAZON_PAUSE_MS = 10 * 60 * 1000L;
 
-    private float dp;
-    private View youtube;
+
+    // An app was opened from one of these screens: when Home is next shown, select the first tile, which is now it
+    private static boolean appOpened;
+
+    private final Map<String, View> views = new LinkedHashMap<>();   // by Tile.key, in shelf order
+    private final List<String> shown = new ArrayList<>();
+    private AppCatalog catalog;
+    private WallpaperView wallpaper;
+    private TextView credit;
+    private TileRail rail;        // only where the shelf scrolls sideways
+    private LinearLayout row;
+    private TextView caption;     // only where tiles have no name of their own to see
+    private String selected;      // Tile.key; null selects the first tile
+
+    private final BroadcastReceiver packagesChanged = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            catalog.invalidate();
+            refresh();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        dp = getResources().getDisplayMetrics().density;
         startService(new Intent(this, HomeWatcher.class));
+        setContentView(layout());
+        catalog = new AppCatalog(this);
+        wallpaper = (WallpaperView) findViewById(R.id.wallpaper);
+        credit = (TextView) findViewById(R.id.credit);
+        FrostedPanel panel = (FrostedPanel) findViewById(R.id.panel);
+        if (panel != null) {
+            panel.setWallpaper(wallpaper);
+        }
+        wallpaper.setListener(new WallpaperView.Listener() {
+            @Override
+            public void onPhoto(Wallpapers.Photo photo) {
+                credit.setText(photo.credit != null ? getString(R.string.credit, photo.credit) : "");
+                credit.setVisibility(photo.credit != null ? View.VISIBLE : View.GONE);
+            }
+        });
+        rail = (TileRail) findViewById(R.id.rail);
+        row = (LinearLayout) findViewById(R.id.row);
+        caption = (TextView) findViewById(R.id.caption);
+        open(R.id.button_all_apps, AllAppsActivity.class);
+        open(R.id.button_settings, SettingsActivity.class);
 
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(0xFF000000);
+        IntentFilter packages = new IntentFilter();
+        packages.addAction(Intent.ACTION_PACKAGE_ADDED);
+        packages.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        packages.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        packages.addDataScheme("package");
+        registerReceiver(packagesChanged, packages);
+    }
 
-        LinearLayout corner = new LinearLayout(this);
-        corner.setOrientation(LinearLayout.VERTICAL);
-        TextClock time = new TextClock(this);
-        time.setFormat12Hour("h:mm");
-        time.setFormat24Hour("HH:mm");
-        style(time, 72, 0xFFFFFFFF, "sans-serif-thin");
-        TextClock date = new TextClock(this);
-        date.setFormat12Hour("EEEE, d MMMM");
-        date.setFormat24Hour("EEEE, d MMMM");
-        style(date, 20, 0x99FFFFFF, "sans-serif-light");
-        corner.addView(time);
-        corner.addView(date);
-        root.addView(corner, at(Gravity.TOP | Gravity.START, 56, 40));
-
-        youtube = tile();
-        root.addView(youtube, new FrameLayout.LayoutParams(px(400), px(225), Gravity.CENTER));
-
-        LinearLayout bottom = new LinearLayout(this);
-        bottom.addView(pill("Settings", v -> openSettings()));
-        bottom.addView(pill("Fire TV home", v -> openAmazonHome()));
-        root.addView(bottom, at(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 40));
-
-        setContentView(root);
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(packagesChanged);
+        super.onDestroy();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        HomeWatcher.pause(0);   // back from Settings or Amazon's home: Home brings this screen up again
-        youtube.requestFocus();
+        HomeWatcher.pause(0);      // back from an app or Amazon's home: Home brings this screen up again
+        if (appOpened && getClass() == HomeActivity.class) {
+            selected = null;       // the app just used is now first: one press of OK goes back to it
+            appOpened = false;
+        }
+        refresh();
+    }
+
+    /**
+     * The cover over Amazon's home comes down only once this window really has the screen. Being told to start (which
+     * is when onNewIntent runs) says nothing about that: Android can take seconds to swap Amazon's home out while it
+     * finishes drawing, and the cover has to stay up over all of it.
+     */
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            HomeWatcher.homeShown();
+        }
     }
 
     @Override
@@ -75,108 +120,136 @@ public class HomeActivity extends Activity {
         // this is Home: Back has nowhere to go
     }
 
-    private View tile() {
-        ImageView art = new ImageView(this);
-        GradientDrawable card = new GradientDrawable();
-        card.setColor(0xFF161616);
-        card.setCornerRadius(px(14));
-        art.setBackground(card);
-        art.setClipToOutline(true);
-        PackageManager pm = getPackageManager();
-        try {
-            Drawable banner = pm.getApplicationBanner(YOUTUBE);
-            if (banner != null) {
-                art.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                art.setImageDrawable(banner);
-            } else {
-                art.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                art.setPadding(px(60), px(40), px(60), px(40));
-                art.setImageDrawable(pm.getApplicationIcon(YOUTUBE));
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            openAmazonHome();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    protected int layout() {
+        return R.layout.activity_home;
+    }
+
+    protected final AppCatalog catalog() {
+        return catalog;
+    }
+
+    /** Writes a line above the dock, for the screens that have a caption. */
+    protected final void say(String text) {
+        if (caption != null) {
+            caption.setText(text);
+        }
+    }
+
+    protected final WallpaperView wallpaper() {
+        return wallpaper;
+    }
+
+    /** The tiles to show, in order. */
+    protected List<Tile> tiles() {
+        return catalog.byRecency();
+    }
+
+    /** Lay the tiles out in the shelf; the default is one row. Each tile view comes from tileView(). */
+    protected void show(LinearLayout shelf, List<Tile> tiles) {
+        int width = getResources().getDimensionPixelSize(R.dimen.tile_width);
+        int height = getResources().getDimensionPixelSize(R.dimen.tile_height);
+        int gap = getResources().getDimensionPixelSize(R.dimen.tile_gap);
+        for (int i = 0; i < tiles.size(); i++) {
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
+            params.setMarginStart(i == 0 ? 0 : gap);
+            shelf.addView(tileView(tiles.get(i)), params);
+        }
+    }
+
+    protected final View tileView(final Tile tile) {
+        TileView view = new TileView(this, tile);
+        views.put(tile.key, view);
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (tile.action != null) {
+                    ((TileView) v).setBadge(tile.action.run());
+                } else {
+                    launch(tile.intent, getString(R.string.error_open, tile.label),
+                            !getPackageName().equals(tile.packageName()));
+                }
             }
-        } catch (PackageManager.NameNotFoundException e) {
-            // YouTube is not installed: an empty card, and the click says so
-        }
-
-        // YouTube's banner is white, so a white focus ring would vanish into it: focus lifts the tile, and the
-        // tile dims while a button below has focus
-        art.setFocusable(true);
-        art.setOnClickListener(v -> openYouTube());
-        art.setOnFocusChangeListener((v, focused) -> {
-            float scale = focused ? 1.06f : 1f;
-            v.animate().scaleX(scale).scaleY(scale).alpha(focused ? 1f : 0.45f).setDuration(150).start();
         });
-        return art;
-    }
-
-    private TextView pill(String label, View.OnClickListener click) {
-        TextView pill = new TextView(this);
-        style(pill, 18, 0xCCFFFFFF, "sans-serif");
-        pill.setText(label);
-        pill.setPadding(px(26), px(10), px(26), px(10));
-        GradientDrawable bg = new GradientDrawable();
-        bg.setCornerRadius(px(24));
-        bg.setColor(0x22FFFFFF);
-        pill.setBackground(bg);
-        pill.setFocusable(true);
-        pill.setOnClickListener(click);
-        pill.setOnFocusChangeListener((v, focused) -> {
-            bg.setColor(focused ? 0xFFFFFFFF : 0x22FFFFFF);
-            pill.setTextColor(focused ? 0xFF000000 : 0xCCFFFFFF);
+        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean focused) {
+                if (focused) {
+                    select(tile, v);
+                }
+            }
         });
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(px(10), 0, px(10), 0);
-        pill.setLayoutParams(lp);
-        return pill;
+        return view;
     }
 
-    private void openYouTube() {
-        PackageManager pm = getPackageManager();
-        Intent intent = pm.getLeanbackLaunchIntentForPackage(YOUTUBE);
-        if (intent == null) {
-            intent = pm.getLaunchIntentForPackage(YOUTUBE);
+    /** Brings the shelf up to date, laying it out again only when the tiles or their order changed. */
+    private void refresh() {
+        List<Tile> tiles = tiles();
+        List<String> keys = new ArrayList<>();
+        for (Tile tile : tiles) {
+            keys.add(tile.key);
         }
-        launch(intent, "YouTube isn't installed. Get it from the Appstore under Fire TV home.");
+        if (!keys.equals(shown)) {
+            shown.clear();
+            shown.addAll(keys);
+            views.clear();
+            row.removeAllViews();
+            show(row, tiles);
+        }
+        View target = views.get(selected);
+        if (target == null && !views.isEmpty()) {
+            target = views.values().iterator().next();
+        }
+        if (target != null) {
+            target.requestFocus();
+        }
     }
 
-    private void openSettings() {
-        // Fire OS answers ACTION_SETTINGS with the launcher's Settings grid; not a Home start, so no pause needed
-        launch(new Intent(Settings.ACTION_SETTINGS), "Couldn't open Settings.");
+    private void select(Tile tile, View view) {
+        selected = tile.key;
+        if (rail != null) {
+            rail.reveal(view);
+        }
+        if (caption != null) {
+            caption.setText(tile.label);
+        }
+    }
+
+    private void open(int buttonId, final Class<? extends Activity> screen) {
+        View button = findViewById(buttonId);
+        if (button != null) {
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    launch(new Intent(HomeActivity.this, screen),
+                            getString(R.string.error_open, v.getContentDescription()), false);
+                }
+            });
+        }
     }
 
     private void openAmazonHome() {
         HomeWatcher.pause(AMAZON_PAUSE_MS);
-        Toast.makeText(this, "Amazon's home for the next 10 minutes", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, R.string.amazon_home_notice, Toast.LENGTH_LONG).show();
         launch(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setPackage(AMAZON_HOME),
-                "Couldn't open Amazon's home.");
+                getString(R.string.error_open, "Amazon's home"), false);
     }
 
-    private void launch(Intent intent, String failure) {
+    private void launch(Intent intent, String failure, boolean isApp) {
         try {
-            if (intent == null) {
-                throw new ActivityNotFoundException();
-            }
             startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        } catch (ActivityNotFoundException e) {
+            appOpened |= isApp;
+        } catch (ActivityNotFoundException | SecurityException e) {
             HomeWatcher.pause(0);
             Toast.makeText(this, failure, Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void style(TextView view, float sp, int color, String family) {
-        view.setTextSize(sp);
-        view.setTextColor(color);
-        view.setTypeface(Typeface.create(family, Typeface.NORMAL));
-    }
-
-    private FrameLayout.LayoutParams at(int gravity, int horizontalDp, int verticalDp) {
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, gravity);
-        lp.setMargins(px(horizontalDp), px(verticalDp), px(horizontalDp), px(verticalDp));
-        return lp;
-    }
-
-    private int px(int dpValue) {
-        return Math.round(dpValue * dp);
     }
 }
