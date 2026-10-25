@@ -28,10 +28,11 @@ public class FrostedPanel extends FrameLayout {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (wallpaper != null) {
-            wallpaper.drawBlurred(canvas, this, radius);
+        if (wallpaper != null && wallpaper.hasPicture()) {
+            wallpaper.drawBlurred(canvas, this, radius, veil.getColor());
+            return;
         }
         bounds.set(0, 0, getWidth(), getHeight());
-        canvas.drawRoundRect(bounds, radius, radius, veil);
+        canvas.drawRoundRect(bounds, radius, radius, veil);   // no picture yet: the veil alone
     }
 }

@@ -10,16 +10,7 @@ Wallpapers downloaded from a GitHub repository (see the README) are credited on 
 
 ## Icons
 
-The icons in `res/drawable/ic_*.xml` are from [Lucide](https://lucide.dev), converted to Android vector drawables
-and drawn with a 1.5 stroke. Lucide is licensed under the ISC licence:
-
-> Copyright (c) Lucide Icons and Contributors
->
-> Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby
-> granted, provided that the above copyright notice and this permission notice appear in all copies.
->
-> THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING
-> ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL,
-> DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-> WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
-> USE OR PERFORMANCE OF THIS SOFTWARE.
+The icons in `res/drawable/ic_*.xml` are filled glyphs from [Material Symbols](https://github.com/google/material-design-icons)
+by Google (`sports_esports`, `apps`, `live_tv`, `autorenew`, `settings`), converted to Android vector drawables. Material
+Symbols is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). The Wi-Fi wedge
+(`ic_network_*.xml`) and the Background tile (`ic_background.xml`) are drawn for this project and released under CC0.

@@ -39,14 +39,14 @@
 
     <style name="Text.Timer">
         <item name="android:textSize">@dimen/text_timer</item>
-        <item name="android:textColor">@color/ink</item>
+        <item name="android:textColor">@color/ground</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
     <style name="Text.TimerUnit">
         <item name="android:textSize">@dimen/text_timer_unit</item>
-        <item name="android:textColor">@color/ink_dim</item>
+        <item name="android:textColor">@color/ground_dim</item>
     </style>
 
     <style name="Text.Credit" parent="Text.OnPhoto">

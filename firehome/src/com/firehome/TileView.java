@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
@@ -39,6 +40,13 @@ final class TileView extends ActiveView {
         content = tile.badge != null ? framedTimer(context, tile) : mark(context, tile);
         addView(content, fill());
         setActive(0f);
+    }
+
+    /** Swaps the mark's picture, for a tile whose glyph changes (the Wi-Fi signal). */
+    void setMark(Drawable drawable) {
+        if (content instanceof ImageView) {
+            ((ImageView) content).setImageDrawable(drawable);
+        }
     }
 
     /** Changes the timer in the frame: "30 min" is a 30 over a "min", "Daily" a word alone. */

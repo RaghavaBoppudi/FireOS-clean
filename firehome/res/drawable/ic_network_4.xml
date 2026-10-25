@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Wi-Fi wedge filled to 4 of 4 of its radius, as Android 5 drew the signal; drawn for this app -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M12.00,21.50L-0.73,8.77A18.00,18.00 0 0 1 24.73,8.77Z" />
+</vector>
