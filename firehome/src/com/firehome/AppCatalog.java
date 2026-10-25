@@ -106,7 +106,9 @@ final class AppCatalog {
     }
 
     private Tile tile(String label, Drawable art, Intent intent) {
-        Tile tile = Tile.opening(label, art, Logo.mono(context.getResources(), art), intent);
+        Drawable mark = Logo.mono(context.getResources(), art);
+        // the banner is only kept when no mark could be cut from it: it is far larger than the mark
+        Tile tile = Tile.opening(label, mark != null ? mark : art, mark, intent);
         tiles.put(tile.key, tile);
         return tile;
     }

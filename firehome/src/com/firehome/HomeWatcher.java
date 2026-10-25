@@ -1,6 +1,8 @@
 package com.firehome;
 
+import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
@@ -139,8 +141,22 @@ public class HomeWatcher extends Service {
                 overlay.show();
             }
         });
-        startActivity(new Intent(this, HomeActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+        startHome();
+    }
+
+    /**
+     * For five seconds after the Home button is pressed Android refuses to start a screen on behalf of an ordinary app
+     * ("Activity start request ... stopped"), so that nothing takes the screen from the home it is about to show. Only
+     * system callers are exempt. A pending intent fired by an alarm is started by the system on the app's behalf, which
+     * is allowed at once, so ask for one that is due now. An alarm-clock alarm is used because the system fires those
+     * immediately; an ordinary exact alarm was sometimes held back for the same five seconds.
+     */
+    private void startHome() {
+        Intent home = new Intent(this, HomeActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        PendingIntent pending = PendingIntent.getActivity(this, 0, home, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarms = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarms.setAlarmClock(new AlarmManager.AlarmClockInfo(System.currentTimeMillis(), pending), pending);
     }
 
     @Override

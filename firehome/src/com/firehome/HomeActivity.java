@@ -116,6 +116,20 @@ public class HomeActivity extends Activity {
     }
 
     @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        if (level >= TRIM_MEMORY_RUNNING_LOW) {
+            // the system is short of memory (this app runs a foreground service, so it is never sent the "cached
+            // process" levels): the pictures are the bulk of what it holds, and are cheap to remake
+            wallpaper.release();
+            Wallpapers.get(this).trim();
+            // the pictures' memory is returned when they are collected, which would otherwise wait for a Java heap that
+            // is nowhere near full
+            System.gc();
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         // this is Home: Back has nowhere to go
     }

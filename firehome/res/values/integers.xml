@@ -6,6 +6,7 @@
     <integer name="overlay_min_ms">350</integer>
     <integer name="overlay_settle_ms">300</integer>
     <integer name="overlay_fade_ms">200</integer>
+    <integer name="overlay_backdrop_fade_ms">600</integer>
     <integer name="overlay_timeout_ms">15000</integer>
     <integer name="interval_default_seconds">1800</integer>
 

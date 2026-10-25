@@ -12,5 +12,7 @@
     <!-- The only colour in the interface is the photograph: everything else is white on a dark veil -->
     <color name="veil">#6614161E</color>
     <color name="scrim">#8C000000</color>
+    <!-- over the soft picture on the launch cover: frosted, not black -->
+    <color name="launch_veil">#59101216</color>
     <color name="plate">#33FFFFFF</color>
 </resources>

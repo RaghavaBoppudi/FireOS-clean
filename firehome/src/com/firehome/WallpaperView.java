@@ -38,10 +38,13 @@ public class WallpaperView extends View {
 
     private final Wallpapers wallpapers;
     private final Handler handler = new Handler();
-    private final Paint image = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
+    private final Paint image = new Paint(Paint.FILTER_BITMAP_FLAG);
     private final Paint scrim = new Paint();
     private final Paint backdrop = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final Matrix matrix = new Matrix();
+    private final Matrix place = new Matrix();
+    private PorterDuffColorFilter veilFilter;
+    private int veilColor;
     private final RectF panel = new RectF();
     private final int[] here = new int[2];
     private final int[] there = new int[2];
@@ -195,6 +198,17 @@ public class WallpaperView extends View {
         canvas.drawBitmap(bitmap, fill(bitmap), image);
     }
 
+    /** Drops the pictures held for drawing; they come back the next time the screen is shown. */
+    void release() {
+        from = null;
+        to = null;
+        wanted = null;
+        invalidate();
+        if (getWindowVisibility() == VISIBLE) {
+            refresh();   // still on screen after all: make the picture again at once
+        }
+    }
+
     boolean hasPicture() {
         return from != null;
     }
@@ -209,7 +223,11 @@ public class WallpaperView extends View {
         panel.set(0, 0, panelView.getWidth(), panelView.getHeight());
         // the veil is laid over the photo by a colour filter inside the same pass: painting it as a second, separate
         // shape would anti-alias the rounded edge twice and leave a faint halo there
-        backdrop.setColorFilter(new PorterDuffColorFilter(veil, PorterDuff.Mode.SRC_OVER));
+        if (veilFilter == null || veilColor != veil) {
+            veilColor = veil;
+            veilFilter = new PorterDuffColorFilter(veil, PorterDuff.Mode.SRC_OVER);
+        }
+        backdrop.setColorFilter(veilFilter);
         paintBlurred(canvas, from, 255, there[0] - here[0], there[1] - here[1], radius);
         if (mix > 0f && to != from) {
             paintBlurred(canvas, to, Math.round(255 * mix), there[0] - here[0], there[1] - here[1], radius);
@@ -217,7 +235,7 @@ public class WallpaperView extends View {
     }
 
     private void paintBlurred(Canvas canvas, Wallpapers.Frame frame, int alpha, int dx, int dy, float radius) {
-        Matrix place = new Matrix(fill(frame.blur));
+        place.set(fill(frame.blur));
         place.postTranslate(-dx, -dy);   // the shader works in the panel's own coordinates
         BitmapShader shader = frame.blurShader();
         shader.setLocalMatrix(place);

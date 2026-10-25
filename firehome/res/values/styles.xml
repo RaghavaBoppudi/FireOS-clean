@@ -49,6 +49,11 @@
         <item name="android:textColor">@color/ground_dim</item>
     </style>
 
+    <style name="Text.Launching" parent="Text.OnPhoto">
+        <item name="android:textSize">@dimen/text_launching</item>
+        <item name="android:textColor">@color/ink</item>
+    </style>
+
     <style name="Text.Credit" parent="Text.OnPhoto">
         <item name="android:textSize">@dimen/text_caption</item>
         <item name="android:textColor">@color/ink_dim</item>
