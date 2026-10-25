@@ -1,45 +1,51 @@
-# Debloat a Fire TV Stick with Claude Code (no remote needed)
+# FireOS-clean
 
-Clean up an Amazon Fire TV Stick over Wi-Fi with [Claude Code](https://claude.com/claude-code), even when the
-physical remote is lost: a remote in your browser, backup-first debloat scripts with a one-line undo, and a
-gradient-background, app-only home screen in place of Amazon's ad-filled one. Built and tested on a Fire TV Stick 2nd gen
-(AFTT, Fire OS 5.2.9.5) with no remote, and on a Fire TV Stick Lite (AFTSS, Fire OS 7) for the home screen.
+**A minimal home screen for Fire TV Stick, with your own wallpapers.**
 
-> Network ADB is full control of your stick. Use this only on a stick you own, on a network you trust.
+Amazon's home is full of banners, sponsored rows and autoplay. This replaces it with a wallpaper, one line of date and
+time, and a small frosted dock of your apps, last used first. Your own photos rotate behind it, pulled from a GitHub
+repository you control (public or private), with a credit line for the photographer.
 
-## What's in here
+![Home](docs/screenshots/home.jpg)
 
-| Path | What it does |
+| All apps | Settings |
 |---|---|
-| [`tools/remote.py`](tools/remote.py) | **A usable remote in your browser**: D-pad, OK, Back, Home, Menu, media and volume keys, arrow-key shortcuts, typing into the TV and a live screen preview. Works over ADB, or with `--no-adb` through the Fire TV app's API. |
-| [`tools/firetv.py`](tools/firetv.py) | Pairs with the stick through the same local API Amazon's Fire TV phone app uses (a PIN shows on the TV) and presses keys, with no ADB and no remote. This is how you reach Developer options on a stick without a remote. |
-| [`tools/tv.py`](tools/tv.py) | Pure-Python ADB client (shell, batch, push, pull); works where macOS blocks the `adb` binary. |
-| [`tools/disable.sh`](tools/disable.sh), [`restore.sh`](tools/restore.sh) | Record each package's state, then switch the list off; restore replays the record. `HIDE=1` for Fire OS 5. |
-| [`firehome/`](firehome/) | **A replacement home screen** (see below). |
-| [`examples/`](examples/) | Debloat lists for five Fire TV devices. |
+| ![All apps](docs/screenshots/all-apps.jpg) | ![Settings](docs/screenshots/settings.jpg) |
 
-## The home screen (`firehome/`)
+(Shown with wallpapers pulled from a GitHub repository.)
 
-A launcher-style app that takes over whenever Amazon's home starts. Fire OS will not let another app be the default
-home, so it watches the system log for Amazon's home starting (`READ_LOGS`, granted over ADB), covers it with a
-"Launching Home" screen, and brings itself up. The cover stays up until the new home really has the screen, so
-Amazon's home is never seen; on a slow stick Android can take around five seconds to hand over.
+## What you get
 
-- One line, `Saturday 24 October | 16:40` (24-hour), over a wallpaper, and a frosted dock of white app marks, the app
-  used last first. Marks are cut out of each app's own artwork, so apps you install later get one too. The selected
-  app sits on a brighter rectangle. Nothing is coloured: the only colour is the wallpaper.
-- Buttons top right: **All apps** (every app, A to Z, including the Appstore) and **Settings** (Network, Controllers
-  & Bluetooth, Applications, My Fire TV, Background, Refresh wallpapers). Display & Sounds is left out: Amazon locks
-  it to its own launcher.
-- **Background** (in Settings) shows how often the wallpaper changes inside its icon: press OK to step through
-  30 seconds to daily (30 minutes by default). **Refresh wallpapers** checks GitHub straight away and says what it found.
-- Starts early at boot through a notification-listener service, so Amazon's home is covered within about a second.
-  Menu on the remote opens Amazon's home for 10 minutes.
+- **Wallpaper first.** The dock is small and sits low, so the picture has the screen. White marks only; the wallpaper is the only colour.
+- **Apps, last used first.** Marks are cut from each app's own artwork, so apps you install later fit in automatically. Appstore and every other app are under **All apps**.
+- **Your own wallpapers from GitHub.** Add images to a repository, name them `1-First-Last.jpg`, and the TV shows them in order with `© First Last`. Any image size works: 100-megapixel photos are cut to 16:9 on the stick, a piece at a time. Public or private repository. With none, 12 built-in gradients are used.
+- **Settings in the same style.** Network, Controllers & Bluetooth, Applications, My Fire TV, how often the wallpaper changes (30 seconds to daily) and a Refresh button.
+- **Covers Amazon's home completely.** A "Launching Home" screen is held until the new home is really on screen, so Amazon's home is never seen. It also starts early at boot and survives restarts.
+- **No account, no cloud, no tracking.** The only network use is reading your wallpaper repository, and only if you set one.
+- **Reversible.** One command puts Amazon's home back.
 
-### Build and install
+## How it works
 
-You need a JDK 17, the Android SDK (build-tools and a platform) and the stick on your network with ADB debugging on
-(see Quick start). On macOS:
+Fire OS won't let another app be the default home. So the app watches the system log for Amazon's home starting (a permission
+you grant once over ADB), covers it, and brings its own home up. Because it relies on ADB, it works on Fire TV devices that
+let you switch on **ADB debugging** (Settings > My Fire TV > Developer options). Tested on a Fire TV Stick Lite (Fire OS 7,
+Android 9); other Fire OS 7 devices should work, and Fire OS 5 is untested for the home screen. It is not affiliated with Amazon.
+
+## Requirements
+
+- A Fire TV with ADB debugging on, and a computer on the same network (macOS or Linux; a JDK 17 and the Android SDK to build).
+- Optional: a GitHub account for your own wallpapers.
+
+## Build and install
+
+1. **On the Fire TV:** Settings > My Fire TV > Developer options > **ADB debugging** on. No Developer options? Go to My Fire TV >
+   About, press OK seven times on the device name, then go back. Note the IP address under About > Network.
+2. **On your computer:** clone this repository and set up the Python tools:
+   ```bash
+   git clone https://github.com/RaghavaBoppudi/FireOS-clean.git && cd FireOS-clean
+   python3 -m venv tools/venv && tools/venv/bin/pip install -r tools/requirements.txt
+   ```
+3. **Install a JDK 17 and the Android SDK** (build-tools and a platform). On macOS:
 
 ```bash
 brew install openjdk@17 && brew install --cask android-commandlinetools
@@ -52,6 +58,8 @@ On Linux install a JDK 17 and the [command-line tools](https://developer.android
 then run the same `sdkmanager` line with `--sdk_root="$HOME/Android/Sdk"`. `firehome/build.sh` finds the SDK in
 `$ANDROID_HOME`, `~/Library/Android/sdk` or `~/Android/Sdk`.
 
+4. **Build and install.** The first time, accept "Allow USB debugging?" on the TV.
+
 ```bash
 export TV_HOST=192.168.1.50                  # your stick's IP address
 firehome/install.sh                          # build, install, grant permissions, open it
@@ -61,7 +69,7 @@ firehome/install.sh --remove                 # undo: Amazon's home is back on th
 `install.sh` grants `READ_LOGS`, draw-over-apps and usage-access over ADB and allows the boot listener. Tested on
 Fire OS 7 (Android 9); Fire OS 5 needs its own check.
 
-### Your own wallpapers
+## Your own wallpapers
 
 Out of the box the home uses 12 gradients built into the app. To show your own images, the app downloads them from
 a GitHub repository of yours, public or private. Set it up once:
@@ -86,7 +94,7 @@ a GitHub repository of yours, public or private. Set it up once:
 5. **Check it.** On the TV open **Settings > Refresh wallpapers**. It says "N wallpapers from GitHub" when it found
    your images. After that new images are picked up automatically, every 30 minutes, whenever Home opens.
 
-#### Keeping the repository private
+### Keeping the repository private
 
 Your images can stay private, so only you can see them and the TV still gets them. The TV then needs a read-only
 **access token**:
@@ -119,7 +127,25 @@ add images you have the right to publish. The built-in gradients are generated b
 [`firehome/wallpapers/generate.py`](firehome/wallpapers/generate.py) (needs Pillow) and are CC0. Icons are
 [Lucide](https://lucide.dev) (ISC); see [`firehome/NOTICE.md`](firehome/NOTICE.md).
 
-## Quick start
+---
+
+# Also in this repo: debloat tools for Fire TV
+
+The repository began as tooling to clean up an Amazon Fire TV Stick over Wi-Fi even with **no remote**: a remote in your
+browser, backup-first debloat scripts with a one-line undo, and debloat lists for five devices. These are optional and
+independent of the home screen.
+
+## What's in the toolbox
+
+| Path | What it does |
+|---|---|
+| [`tools/remote.py`](tools/remote.py) | **A usable remote in your browser**: D-pad, OK, Back, Home, Menu, media and volume keys, arrow-key shortcuts, typing into the TV and a live screen preview. Works over ADB, or with `--no-adb` through the Fire TV app's API. |
+| [`tools/firetv.py`](tools/firetv.py) | Pairs with the stick through the same local API Amazon's Fire TV phone app uses (a PIN shows on the TV) and presses keys, with no ADB and no remote. This is how you reach Developer options on a stick without a remote. |
+| [`tools/tv.py`](tools/tv.py) | Pure-Python ADB client (shell, batch, push, pull); works where macOS blocks the `adb` binary. |
+| [`tools/disable.sh`](tools/disable.sh), [`restore.sh`](tools/restore.sh) | Record each package's state, then switch the list off; restore replays the record. `HIDE=1` for Fire OS 5. |
+| [`examples/`](examples/) | Debloat lists for five Fire TV devices. |
+
+## Quick start (debloat tools)
 
 ```bash
 git clone https://github.com/RaghavaBoppudi/FireOS-clean.git && cd FireOS-clean
@@ -193,4 +219,6 @@ home, its full-screen ads and sponsored tiles stop coming up. Newer Fire OS lets
 ## Credits
 
 Built on [CleanYourTV](https://github.com/Gathin23/cleanyourtv) by Gathin23 (MIT): the ADB client, the
-backup/restore scripts and the Fire OS 6 and 7 lists come from there. MIT licence, see [`LICENSE`](LICENSE).
+backup/restore scripts and the Fire OS 6 and 7 lists come from there. The browser remote (`tools/remote.py`), the PIN
+pairing tool (`tools/firetv.py`) and the Fire TV Stick 2nd gen list were added by [whyashthakker](https://github.com/whyashthakker),
+who adapted CleanYourTV for sticks without a remote. The home screen in `firehome/` is by Raghava Boppudi. MIT licence, see [`LICENSE`](LICENSE).
