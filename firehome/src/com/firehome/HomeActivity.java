@@ -137,6 +137,12 @@ public class HomeActivity extends Activity {
         return catalog;
     }
 
+    /** The view of a tile, once the shelf is laid out; null if it is not shown. */
+    protected final TileView viewOf(Tile tile) {
+        View view = views.get(tile.key);
+        return view instanceof TileView ? (TileView) view : null;
+    }
+
     /** Writes a line above the dock, for the screens that have a caption. */
     protected final void say(String text) {
         if (caption != null) {

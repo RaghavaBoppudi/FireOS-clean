@@ -8,6 +8,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
@@ -193,14 +195,21 @@ public class WallpaperView extends View {
         canvas.drawBitmap(bitmap, fill(bitmap), image);
     }
 
+    boolean hasPicture() {
+        return from != null;
+    }
+
     /** Draws the blurred photo as it lies behind a panel, clipped to the panel's rounded outline. */
-    void drawBlurred(Canvas canvas, View panelView, float radius) {
+    void drawBlurred(Canvas canvas, View panelView, float radius, int veil) {
         if (from == null) {
             return;
         }
         getLocationInWindow(here);
         panelView.getLocationInWindow(there);
         panel.set(0, 0, panelView.getWidth(), panelView.getHeight());
+        // the veil is laid over the photo by a colour filter inside the same pass: painting it as a second, separate
+        // shape would anti-alias the rounded edge twice and leave a faint halo there
+        backdrop.setColorFilter(new PorterDuffColorFilter(veil, PorterDuff.Mode.SRC_OVER));
         paintBlurred(canvas, from, 255, there[0] - here[0], there[1] - here[1], radius);
         if (mix > 0f && to != from) {
             paintBlurred(canvas, to, Math.round(255 * mix), there[0] - here[0], there[1] - here[1], radius);
