@@ -14,13 +14,13 @@
         <item name="android:fontFamily">sans-serif</item>
     </style>
 
-    <style name="Text.Header">
+    <style name="Text.Header" parent="Text.OnPhoto">
         <item name="android:textSize">@dimen/text_header</item>
         <item name="android:textColor">@color/ink</item>
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
-    <style name="Text.Secondary">
+    <style name="Text.Secondary" parent="Text.OnPhoto">
         <item name="android:textSize">@dimen/text_secondary</item>
         <item name="android:textColor">@color/ink_dim</item>
     </style>

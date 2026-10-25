@@ -4,10 +4,13 @@
     <color name="ink">#FFF4F4F2</color>
     <color name="ink_dim">#B3F4F4F2</color>
     <!-- written on a solid white tile (the Background timer) -->
+    <!-- the soft shadow behind a resting top-bar icon -->
+    <color name="halo">#33000000</color>
+    <color name="halo_edge">#0F000000</color>
     <color name="ground_dim">#B30B0B0C</color>
 
     <!-- The only colour in the interface is the photograph: everything else is white on a dark veil -->
     <color name="veil">#6614161E</color>
-    <color name="plate">#33FFFFFF</color>
     <color name="scrim">#8C000000</color>
+    <color name="plate">#33FFFFFF</color>
 </resources>

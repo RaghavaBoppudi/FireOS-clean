@@ -36,6 +36,8 @@ final class Wallpapers {
     private static final String DIRECTORY = "backgrounds";
     private static final String PREFERENCES = "wallpapers";
     private static final String KEY_INTERVAL = "interval_seconds";
+    private static final String KEY_FILE = "playing_file";     // the wallpaper showing now
+    private static final String KEY_SINCE = "playing_since";   // and when it came up, ms since the epoch
     private static final int BLUR_WIDTH = 160;
     private static final int BLUR_RADIUS = 3;
     private static final int BLUR_PASSES = 3;
@@ -195,33 +197,38 @@ final class Wallpapers {
 
     /** Moves to the next interval in the list; after the longest it wraps round to the shortest. */
     void nextInterval() {
-        preferences.edit().putInt(KEY_INTERVAL, (int) (intervalsMs[(interval() + 1) % intervalsMs.length] / 1000)).apply();
+        preferences.edit().putInt(KEY_INTERVAL, (int) (intervalsMs[(interval() + 1) % intervalsMs.length] / 1000))
+                .putLong(KEY_SINCE, System.currentTimeMillis()).apply();   // the new interval counts from now
     }
 
     // --- which photo ---
 
-    /** The photo for this moment: the list in order, one step per interval. Null if there are no photos. */
-    Photo photoAt(long now) {
+    /**
+     * The wallpaper for this moment. They play in list order, one step each interval, and the place in the list is
+     * kept (see Rotation), so every screen shows the same one and nothing jumps. Null if there are none.
+     */
+    synchronized Photo photoAt(long now) {
         List<Photo> list = photos;
         if (list.isEmpty()) {
             return null;
         }
-        return list.get((int) (slot(now) % list.size()));
+        List<String> files = new ArrayList<>();
+        for (Photo photo : list) {
+            files.add(photo.file);
+        }
+        String file = preferences.getString(KEY_FILE, null);
+        Rotation.Step saved = file != null ? new Rotation.Step(file, preferences.getLong(KEY_SINCE, 0)) : null;
+        Rotation.Step step = Rotation.at(files, saved, now, intervalsMs[interval()], TimeZone.getDefault());
+        if (saved == null || !step.file.equals(saved.file) || step.since != saved.since) {
+            preferences.edit().putString(KEY_FILE, step.file).putLong(KEY_SINCE, step.since).apply();
+        }
+        return list.get(files.indexOf(step.file));
     }
 
-    /** Milliseconds until the photo changes. */
-    long untilNext(long now) {
-        long interval = intervalsMs[interval()];
-        return interval - localTime(now) % interval;
-    }
-
-    private long slot(long now) {
-        return localTime(now) / intervalsMs[interval()];
-    }
-
-    /** Local time, so that "daily" changes at midnight where the TV is rather than at midnight UTC. */
-    private static long localTime(long now) {
-        return now + TimeZone.getDefault().getOffset(now);
+    /** Milliseconds until the wallpaper changes. */
+    synchronized long untilNext(long now) {
+        long since = preferences.getLong(KEY_SINCE, now);
+        return Math.max(1000, Rotation.untilNext(since, now, intervalsMs[interval()], TimeZone.getDefault()));
     }
 
     // --- the pictures ---
