@@ -13,8 +13,8 @@ import random
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "backgrounds")
-SIZE = (1920, 1080)
-WORK = (480, 270)   # painted small and scaled up: the scaling is part of the blur
+SIZE = (960, 540)
+WORK = (240, 135)   # painted tiny and scaled up: the scaling is part of the blur
 
 # name, ground, then pools of (colour, x, y, radius), positions and radii as fractions of the width
 WALLPAPERS = [
@@ -63,10 +63,10 @@ def main():
         img = paint(ground, pools, rng).resize(SIZE, Image.BICUBIC)
         noise = grain(rng)
         # overlay the grain at low strength: pull it towards mid-grey, then add its deviation from mid-grey
-        faint = Image.blend(Image.new("RGB", SIZE, (128, 128, 128)), noise, .22)
+        faint = Image.blend(Image.new("RGB", SIZE, (128, 128, 128)), noise, .14)
         img = ImageChops.add(img, faint, scale=1, offset=-128)
         name = "%02d.jpg" % n
-        img.save(os.path.join(OUT, name), "JPEG", quality=90, subsampling=0)
+        img.save(os.path.join(OUT, name), "JPEG", quality=88)
         names.append(name)
     with open(os.path.join(OUT, "index.json"), "w") as f:
         json.dump(names, f, indent=2)

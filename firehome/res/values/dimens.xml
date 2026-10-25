@@ -32,8 +32,11 @@
     <dimen name="credit_bottom">14dp</dimen>
     <!-- All apps keeps clear of the top bar: its bottom edge (bar_top + button_size) plus a gap -->
     <dimen name="grid_top">120dp</dimen>
-    <!-- the "Launching Home" text sits on the dock's middle: dock_bottom plus half the dock (92dp), less half a line -->
-    <dimen name="launching_bottom">68dp</dimen>
+    <!-- the launch cover: a spinner and its caption, centred -->
+    <dimen name="spinner_size">36dp</dimen>
+    <dimen name="spinner_stroke">4dp</dimen>
+    <dimen name="spinner_gap">18dp</dimen>
+    <dimen name="text_launching">24sp</dimen>
 
     <!-- Type scale -->
     <dimen name="text_header">22sp</dimen>

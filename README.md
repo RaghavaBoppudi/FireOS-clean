@@ -20,16 +20,33 @@ repository you control (public or private), with a credit line for the photograp
 - **Apps, last used first.** Marks are cut from each app's own artwork, so apps you install later fit in automatically. Appstore and every other app are under **All apps**.
 - **Your own wallpapers from GitHub.** Add images to a repository, name them `1-First-Last.jpg`, and the TV shows them in order with `© First Last`. Any image size works: 100-megapixel photos are cut to 16:9 on the stick, a piece at a time. Public or private repository. With none, 12 built-in gradients are used.
 - **Settings in the same style.** Network, Controllers & Bluetooth, Applications, My Fire TV, how often the wallpaper changes (30 seconds to daily; daily changes at midnight) and a Refresh button.
-- **Covers Amazon's home completely.** A "Launching Home" screen is held until the new home is really on screen, so Amazon's home is never seen. It also starts early at boot and survives restarts.
+- **Covers Amazon's home completely.** A frosted "Launching Home" screen (a blurred wallpaper with a spinner) is held until the new home is really on screen, so Amazon's home is never seen. The handover takes about a second. It also starts early at boot and survives restarts.
 - **No account, no cloud, no tracking.** The only network use is reading your wallpaper repository, and only if you set one.
 - **Reversible.** One command puts Amazon's home back.
 
 ## How it works
 
 Fire OS won't let another app be the default home. So the app watches the system log for Amazon's home starting (a permission
-you grant once over ADB), covers it, and brings its own home up. Because it relies on ADB, it works on Fire TV devices that
+you grant once over ADB), covers it, and brings its own home up. Android blocks an app from opening a screen for five seconds after the Home button, so the app has the alarm service open it instead, which is exempt. Because it relies on ADB, it works on Fire TV devices that
 let you switch on **ADB debugging** (Settings > My Fire TV > Developer options). Tested on a Fire TV Stick Lite (Fire OS 7,
 Android 9); other Fire OS 7 devices should work, and Fire OS 5 is untested for the home screen. It is not affiliated with Amazon.
+
+## Speed and size
+
+Measured on a Fire TV Stick Lite (1 GB RAM, Fire OS 7) with the app's own timers and Android's frame statistics:
+
+| | Result |
+|---|---|
+| Home button to the new home on screen | **0.3 to 1.0 s** (5.0 s before the alarm-based start; Amazon's own home takes about 0.4 to 0.7 s) |
+| Cold start of the app | 383 ms |
+| Frames over budget while moving through the dock | 0 of 132 |
+| Memory on a fresh start | about 45 MB |
+| Size of the app | 0.6 MB |
+
+For a fair comparison: Amazon's own home is a little quicker to appear, because it is the system's home and starts first.
+This one is covered the whole time by the "Launching Home" screen, so you never see Amazon's home while it loads. The
+five-second figure was Android deliberately holding back any app's screen after the Home button; see "How it works".
+Numbers will vary a little with the stick, its load and the wallpaper.
 
 ## Requirements
 

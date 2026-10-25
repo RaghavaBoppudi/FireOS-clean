@@ -25,7 +25,9 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The background wallpapers: which one is showing now, and the decoded pictures. The bundled ones are listed in
@@ -41,7 +43,12 @@ final class Wallpapers {
     private static final int BLUR_WIDTH = 160;
     private static final int BLUR_RADIUS = 3;
     private static final int BLUR_PASSES = 3;
-    private static final int CACHED = 3;
+    private static final int CACHED = 2;   // the one showing and the one fading in
+    // the backdrop of the launch cover: a few dozen pixels across, blurred until only colour is left, then stretched
+    private static final int BACKDROP_WIDTH = 48;
+    private static final int BACKDROP_RADIUS = 2;
+    private static final int BACKDROP_PASSES = 4;
+    private static final int BACKDROP_DECODE_WIDTH = 480;
 
     /** A wallpaper. Bundled ones are assets; downloaded ones are files in the cache. */
     static final class Photo {
@@ -92,6 +99,10 @@ final class Wallpapers {
         void onFrame(Frame frame);
     }
 
+    interface BackdropCallback {
+        void onBackdrop(Bitmap backdrop);
+    }
+
     private static Wallpapers instance;
 
     private final Context context;
@@ -101,13 +112,35 @@ final class Wallpapers {
     private volatile List<Photo> photos = bundled;
     private final List<Runnable> listeners = new CopyOnWriteArrayList<>();   // one per screen showing the wallpaper
     private final Handler main = new Handler(Looper.getMainLooper());
-    private final ExecutorService decoder = Executors.newSingleThreadExecutor();
+    private final ExecutorService decoder = idleExecutor();
+    // the launch cover must not wait behind the home screen's own picture, so it has its own thread and a small cache
+    private final ExecutorService backdropDecoder = idleExecutor();
+    private final Map<String, Bitmap> backdrops = new LinkedHashMap<>();
+    private final java.util.Random random = new java.util.Random();
     private final Map<String, Frame> cache = new LinkedHashMap<String, Frame>(CACHED + 1, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Frame> eldest) {
             return size() > CACHED;
         }
     };
+
+    /** One worker thread that exits after a few idle seconds, so a TV showing the same picture all day holds none. */
+    private static ExecutorService idleExecutor() {
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 10, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<Runnable>());
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
+    }
+
+    /** Lets go of every decoded picture; they are made again when next needed. For when the system is short of memory. */
+    void trim() {
+        synchronized (cache) {
+            cache.clear();
+        }
+        synchronized (backdrops) {
+            backdrops.clear();
+        }
+    }
 
     static synchronized Wallpapers get(Context context) {
         if (instance == null) {
@@ -231,6 +264,76 @@ final class Wallpapers {
         return Math.max(1000, Rotation.untilNext(since, now, intervalsMs[interval()], TimeZone.getDefault()));
     }
 
+    // --- the launch cover's backdrop ---
+
+    /** A wallpaper chosen at random, or null if there are none. */
+    synchronized Photo randomPhoto() {
+        List<Photo> list = photos;
+        return list.isEmpty() ? null : list.get(random.nextInt(list.size()));
+    }
+
+    /**
+     * Delivers, on the main thread, a very soft picture of the wallpaper: only its colours, in blurred washes. It is
+     * decoded at a fraction of the size, so it comes up quickly even for a huge photograph, and kept once made.
+     */
+    void loadBackdrop(final Photo photo, final BackdropCallback callback) {
+        Bitmap cached;
+        synchronized (backdrops) {
+            cached = backdrops.get(photo.file);
+        }
+        if (cached != null) {
+            callback.onBackdrop(cached);
+            return;
+        }
+        backdropDecoder.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final Bitmap soft = softPicture(photo);
+                    synchronized (backdrops) {
+                        backdrops.put(photo.file, soft);
+                    }
+                    main.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onBackdrop(soft);
+                        }
+                    });
+                } catch (IOException | RuntimeException e) {
+                    // no backdrop: the cover stays a plain dark screen
+                }
+            }
+        });
+    }
+
+    private Bitmap softPicture(Photo photo) throws IOException {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        InputStream in = open(photo);
+        try {
+            BitmapFactory.decodeStream(in, null, bounds);
+        } finally {
+            in.close();
+        }
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = Integer.highestOneBit(Math.max(1, bounds.outWidth / BACKDROP_DECODE_WIDTH));
+        in = open(photo);
+        try {
+            Bitmap small = BitmapFactory.decodeStream(in, null, options);
+            if (small == null) {
+                throw new IOException("not an image: " + photo.file);
+            }
+            return blurred(small, BACKDROP_WIDTH, BACKDROP_RADIUS, BACKDROP_PASSES);
+        } finally {
+            in.close();
+        }
+    }
+
+    private InputStream open(Photo photo) throws IOException {
+        return photo.local != null ? new FileInputStream(photo.local)
+                : context.getAssets().open(DIRECTORY + "/" + photo.file, AssetManager.ACCESS_STREAMING);
+    }
+
     // --- the pictures ---
 
     /** Delivers the photo's frame on the main thread, from the cache if it is there. */
@@ -265,8 +368,7 @@ final class Wallpapers {
     }
 
     private Frame decode(Photo photo) throws IOException {
-        InputStream in = photo.local != null ? new FileInputStream(photo.local)
-                : context.getAssets().open(DIRECTORY + "/" + photo.file, AssetManager.ACCESS_STREAMING);
+        InputStream in = open(photo);
         try {
             Bitmap image = BitmapFactory.decodeStream(in);
             if (image == null) {
@@ -296,8 +398,11 @@ final class Wallpapers {
 
     /** A small, heavily blurred copy of the picture: what frosted glass over it shows. */
     private static Bitmap blurred(Bitmap image) {
-        int width = BLUR_WIDTH;
-        int height = Math.max(1, Math.round(BLUR_WIDTH * image.getHeight() / (float) image.getWidth()));
+        return blurred(image, BLUR_WIDTH, BLUR_RADIUS, BLUR_PASSES);
+    }
+
+    private static Bitmap blurred(Bitmap image, int width, int radius, int passes) {
+        int height = Math.max(1, Math.round(width * image.getHeight() / (float) image.getWidth()));
         // shrunk in two steps: one big step skips pixels and leaves noise that blurring cannot remove
         Bitmap half = Bitmap.createScaledBitmap(image, width * 3, height * 3, true);
         Bitmap small = Bitmap.createScaledBitmap(half, width, height, true);
@@ -306,9 +411,9 @@ final class Wallpapers {
         }
         int[] pixels = new int[width * height];
         small.getPixels(pixels, 0, width, 0, 0, width, height);
-        for (int pass = 0; pass < BLUR_PASSES; pass++) {
-            boxBlur(pixels, width, height, BLUR_RADIUS, true);
-            boxBlur(pixels, width, height, BLUR_RADIUS, false);
+        for (int pass = 0; pass < passes; pass++) {
+            boxBlur(pixels, width, height, radius, true);
+            boxBlur(pixels, width, height, radius, false);
         }
         small.setPixels(pixels, 0, width, 0, 0, width, height);
         return small;

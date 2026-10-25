@@ -1,22 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Shown over Amazon's home while ours takes its place: a very soft picture of a wallpaper under a veil, and a
+     spinner with its caption in the middle -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/ground">
 
-    <include
-        layout="@layout/header"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/button_size"
-        android:layout_gravity="top|start"
-        android:layout_marginStart="@dimen/margin"
-        android:layout_marginTop="@dimen/bar_top" />
+    <ImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:scaleType="centerCrop" />
 
-    <TextView
-        style="@style/Text.Body"
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/launch_veil" />
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="@dimen/launching_bottom"
-        android:text="@string/launching" />
+        android:layout_gravity="center"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.firehome.SpinnerView
+            android:layout_width="@dimen/spinner_size"
+            android:layout_height="@dimen/spinner_size" />
+
+        <TextView
+            style="@style/Text.Launching"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spinner_gap"
+            android:text="@string/launching" />
+    </LinearLayout>
 </FrameLayout>
