@@ -36,6 +36,9 @@ import java.util.regex.Pattern;
  *
  * With no repository named in config.xml nothing here runs, and the bundled wallpapers are used.
  *
+ * A private repository needs an access token (see TokenReceiver). It is read from the app's private storage, sent only
+ * to GitHub's own two hosts, and never written anywhere else.
+ *
  * What happens when:
  *  - the repository has at least one usable image: only those are used;
  *  - the repository is reachable but has none (or is empty): the cache is cleared, so the bundled gradients are used;
@@ -62,7 +65,10 @@ final class RemoteWallpapers {
     private static final Pattern IMAGE = Pattern.compile(".+\\.(jpe?g|png|webp)", Pattern.CASE_INSENSITIVE);
     private static final String PREFERENCES = "remote_wallpapers";
 
+    private static final String TOKEN = "token";
+    private static final String API_HOST = "api.github.com";
     private static final AtomicBoolean running = new AtomicBoolean();
+    private static volatile String token = "";   // set at the start of each sync, which only one thread runs at a time
     private static final Handler main = new Handler(Looper.getMainLooper());
 
     /** How a sync ended. */
@@ -71,6 +77,7 @@ final class RemoteWallpapers {
         EMPTY,     // the repository has none: the bundled wallpapers are in use
         CURRENT,   // nothing changed since the last sync
         OFFLINE,   // GitHub could not be reached; what was cached is kept
+        DENIED,    // GitHub does not let this TV see the repository: a wrong name, or a missing or refused token
         NOT_SET    // no repository is named in config.xml: only the bundled wallpapers are used
     }
 
@@ -79,6 +86,24 @@ final class RemoteWallpapers {
     }
 
     private RemoteWallpapers() {
+    }
+
+    /** The access token for a private repository, kept in the app's private storage. Empty removes it. */
+    static void setToken(Context context, String value) {
+        SharedPreferences state = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor edit = state.edit().remove(ETAG).putLong("attempt", 0);   // look again at once
+        if (value.isEmpty()) {
+            edit.remove(TOKEN);
+        } else {
+            edit.putString(TOKEN, value);
+        }
+        edit.apply();
+    }
+
+    private static final class DeniedException extends IOException {
+        DeniedException(String message) {
+            super(message);
+        }
     }
 
     // --- what is cached ---
@@ -149,6 +174,8 @@ final class RemoteWallpapers {
                     Wallpapers.get(app).reload();
                     outcome = count < 0 ? Outcome.CURRENT : count == 0 ? Outcome.EMPTY : Outcome.SYNCED;
                     report(callback, outcome, Math.max(count, 0));
+                } catch (DeniedException e) {
+                    report(callback, Outcome.DENIED, 0);
                 } catch (IOException | JSONException e) {
                     // offline, rate limited or unexpected: keep what is cached and try again later
                     report(callback, Outcome.OFFLINE, 0);
@@ -176,6 +203,7 @@ final class RemoteWallpapers {
     /** Syncs the cache with the repository. Returns the number of images now cached, or -1 if nothing had changed. */
     private static int sync(Context context, SharedPreferences state) throws IOException, JSONException {
         File dir = directory(context);
+        token = state.getString(TOKEN, "");
         String url = String.format(LIST_URL, context.getString(R.string.wallpaper_repo).trim(),
                 context.getString(R.string.wallpaper_path).trim());
         HttpURLConnection connection = open(url);
@@ -191,11 +219,16 @@ final class RemoteWallpapers {
             // an empty repository has no folder to list, and says so; any other 404 is a mistake in the settings
             String body = new String(readAll(connection.getErrorStream(), MAX_BYTES), "UTF-8");
             if (!body.contains("empty")) {
-                throw new IOException("not found: " + url);
+                // a private repository answers "not found" to anyone it will not show itself to
+                throw new DeniedException("not found: " + url);
             }
             keepOnly(dir, new JSONArray());
             state.edit().remove(ETAG).apply();
             return 0;
+        }
+        if (code == HttpURLConnection.HTTP_UNAUTHORIZED
+                || (code == HttpURLConnection.HTTP_FORBIDDEN && !"0".equals(connection.getHeaderField("X-RateLimit-Remaining")))) {
+            throw new DeniedException("HTTP " + code + " for " + url);   // a refused token; a spent rate limit is "0" left
         }
         if (code != HttpURLConnection.HTTP_OK) {
             throw new IOException("HTTP " + code + " for " + url);
@@ -384,17 +417,6 @@ final class RemoteWallpapers {
         }
     }
 
-    private static byte[] download(String url) throws IOException {
-        if (!new URL(url).getHost().equals(RAW_HOST)) {
-            throw new IOException("unexpected host: " + url);
-        }
-        HttpURLConnection connection = open(url);
-        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new IOException("HTTP " + connection.getResponseCode() + " for " + url);
-        }
-        return readAll(connection.getInputStream(), MAX_BYTES);
-    }
-
     private static HttpURLConnection open(String url) throws IOException {
         if (!url.startsWith("https://")) {
             throw new IOException("not https: " + url);
@@ -405,6 +427,10 @@ final class RemoteWallpapers {
         connection.setInstanceFollowRedirects(false);   // GitHub's own hosts answer directly; follow nothing elsewhere
         connection.setRequestProperty("User-Agent", "firehome");
         connection.setRequestProperty("Accept", "application/vnd.github+json");
+        String host = connection.getURL().getHost();
+        if (!token.isEmpty() && (host.equals(API_HOST) || host.equals(RAW_HOST))) {
+            connection.setRequestProperty("Authorization", "Bearer " + token);   // to GitHub, and nowhere else
+        }
         return connection;
     }
 

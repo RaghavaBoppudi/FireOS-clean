@@ -64,10 +64,10 @@ Fire OS 7 (Android 9); Fire OS 5 needs its own check.
 ### Your own wallpapers
 
 Out of the box the home uses 12 gradients built into the app. To show your own images, the app downloads them from
-a **public GitHub repository** of yours. Set it up once:
+a GitHub repository of yours, public or private. Set it up once:
 
 1. **Create the repository.** On GitHub choose **New repository**, give it a name such as `tv-wallpapers`, set it
-   to **Public** and create it. (It can be empty, and it must be public: the TV has no GitHub login.)
+   to **Public** (or Private, see below) and create it. (It can be empty. Public is simplest; for a private one see below.)
 2. **Add images.** Open the repository, choose **Add file > Upload files**, drag your images in and **Commit changes**.
    Use JPG, PNG or WebP at the **top level** (not in a folder). **16:9** images are ideal (1920 × 1080 is enough, 3840 × 2160
    is plenty). Any other shape or size is fine too: the TV cuts the middle 16:9 out of it and scales it to 1920 × 1080
@@ -85,6 +85,23 @@ a **public GitHub repository** of yours. Set it up once:
    `wallpaper_path`. Then run `firehome/install.sh` again.
 5. **Check it.** On the TV open **Settings > Refresh wallpapers**. It says "N wallpapers from GitHub" when it found
    your images. After that new images are picked up automatically, every 30 minutes, whenever Home opens.
+
+#### Keeping the repository private
+
+Your images can stay private, so only you can see them and the TV still gets them. The TV then needs a read-only
+**access token**:
+
+1. On GitHub open **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**.
+2. Set **Repository access** to **Only select repositories** and choose your wallpaper repository. Under **Permissions >
+   Repository permissions** set **Contents** to **Read-only**. Nothing else. Pick an expiry (a year is reasonable).
+3. Copy the token (it starts with `github_pat_`). Save it in the git-ignored file `firehome/wallpaper-token`, or pass it for one run:
+   `WALLPAPER_TOKEN=github_pat_... firehome/install.sh`. The installer sends it to the TV over ADB; it is kept in the app's
+   private storage, **not** in the APK and not in git, and is only ever sent to GitHub.
+4. Open **Settings > Refresh wallpapers** on the TV. "GitHub won't show this TV the repository" means the name or the token is wrong.
+   Remove the token any time with `firehome/install.sh --clear-token`. When it expires, make a new one and run `install.sh` again.
+
+Anyone with ADB access to your TV could read the token, which is why it should be read-only and for this one repository.
+Before switching a repository to private, install with the token first: until then the TV can't see it.
 
 How it behaves:
 

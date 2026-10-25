@@ -126,12 +126,12 @@ public class WallpaperView extends View {
     private void check() {
         long now = System.currentTimeMillis();
         Wallpapers.Photo photo = wallpapers.photoAt(now);
-        if (photo != null && photo != wanted) {
+        if (photo != null && !photo.equals(wanted)) {
             wanted = photo;
             wallpapers.load(photo, new Wallpapers.Callback() {
                 @Override
                 public void onFrame(Wallpapers.Frame frame) {
-                    if (frame.photo == wanted) {
+                    if (frame.photo.equals(wanted)) {
                         show(frame);
                     }
                 }

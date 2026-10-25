@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
-# Build and install the YouTube home on a Fire TV, let its watcher read the log, and open it.
+# Build and install the home screen on a Fire TV, grant what its watcher needs, and open it.
 # Usage:   TV_HOST=192.168.1.50 firehome/install.sh
+# Token:   WALLPAPER_TOKEN=... firehome/install.sh          (a private wallpaper repository; see the README)
+#          TV_HOST=192.168.1.50 firehome/install.sh --clear-token
 # Undo:    TV_HOST=192.168.1.50 firehome/install.sh --remove     (Amazon's home is back on the next Home press)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=tools/venv/bin/python
 [ -x "$PY" ] || { echo "run: python3 -m venv tools/venv && tools/venv/bin/pip install -r tools/requirements.txt"; exit 1; }
 tv() { "$PY" -I tools/tv.py "$@"; }
+
+if [ "${1:-}" = "--clear-token" ]; then
+  printf '%s\n' "am broadcast -n com.firehome/.TokenReceiver --es token ''" | tv --batch >/dev/null
+  echo "token removed from the TV"
+  exit 0
+fi
 
 if [ "${1:-}" = "--remove" ]; then
   printf '%s\n' "pm uninstall com.firehome" "input keyevent 3" | tv --batch
@@ -18,6 +26,13 @@ firehome/build.sh
 "$PY" -I tools/b64push.py firehome/build/firehome.apk /data/local/tmp/firehome.apk
 # Fire OS drops accessibility services set over ADB, but grants these: READ_LOGS lets the watcher see Home
 # presses, SYSTEM_ALERT_WINDOW lets it cover Amazon's home meanwhile, GET_USAGE_STATS orders the icons by use.
+# A private wallpaper repository needs a read-only GitHub token: from $WALLPAPER_TOKEN or the git-ignored file
+# firehome/wallpaper-token. It goes to the app's private storage, not into the APK. Nothing set: left as it is.
+TOKEN="${WALLPAPER_TOKEN:-}"
+[ -z "$TOKEN" ] && [ -f firehome/wallpaper-token ] && TOKEN="$(tr -d ' \r\n' < firehome/wallpaper-token)"
+case "$TOKEN" in *[!A-Za-z0-9_]*) echo "the wallpaper token may only contain letters, digits and _"; exit 1;; esac
+SEND_TOKEN=
+[ -n "$TOKEN" ] && SEND_TOKEN="am broadcast -n com.firehome/.TokenReceiver --es token $TOKEN"
 printf '%s\n' \
   "pm install -r /data/local/tmp/firehome.apk" \
   "rm /data/local/tmp/firehome.apk" \
@@ -25,4 +40,5 @@ printf '%s\n' \
   "cmd notification allow_listener com.firehome/com.firehome.BootListener" \
   "appops set com.firehome SYSTEM_ALERT_WINDOW allow" \
   "appops set com.firehome GET_USAGE_STATS allow" \
+  "$SEND_TOKEN" \
   "am start -n com.firehome/.HomeActivity" | tv --batch

@@ -15,6 +15,7 @@
     <string name="wallpapers_not_set">No wallpaper repository is set: using the built-in wallpapers</string>
     <string name="wallpapers_current">Wallpapers are up to date</string>
     <string name="wallpapers_empty">The repository has no images yet: using the built-in wallpapers</string>
+    <string name="wallpapers_denied">GitHub won\'t show this TV the repository: check its name and the access token</string>
     <string name="wallpapers_offline">Couldn\'t reach GitHub</string>
     <plurals name="wallpapers_synced">
         <item quantity="one">%d wallpaper from GitHub</item>
