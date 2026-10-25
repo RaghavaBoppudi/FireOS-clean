@@ -6,3 +6,5 @@ __pycache__/
 backup/
 .DS_Store
 *.apk
+# GitHub access token for a private wallpaper repository
+firehome/wallpaper-token

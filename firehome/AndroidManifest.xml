@@ -53,6 +53,9 @@
 
         <!-- BOOT_COMPLETED goes to ~100 receivers one at a time on a Fire TV Stick; at default priority this
              one waited minutes. Ordered broadcasts go out by priority, so ask to be near the front. -->
+        <!-- only the ADB shell (which holds DUMP) can send the access token for a private wallpaper repository -->
+        <receiver android:name=".TokenReceiver" android:exported="true" android:permission="android.permission.DUMP" />
+
         <receiver android:name=".BootReceiver">
             <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

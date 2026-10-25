@@ -52,6 +52,17 @@ final class Wallpapers {
             this.local = local;
             this.credit = credit;
         }
+
+        /** The same wallpaper is the same file: a sync builds new objects for files that did not change. */
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof Photo && ((Photo) other).file.equals(file);
+        }
+
+        @Override
+        public int hashCode() {
+            return file.hashCode();
+        }
     }
 
     /** A photo ready to draw: the picture, and a blurred small copy of it for frosted glass to show. */

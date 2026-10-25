@@ -1,7 +1,7 @@
 # Wallpapers for my Fire TV home screen
 
 Images in this repository are shown as the background of a [firehome](https://github.com/RaghavaBoppudi/FireOS-clean)
-home screen. The TV downloads them from here, so this repository **must be public**.
+home screen. The TV downloads them from here. The repository can be public, or private if the TV has an access token (see the main README).
 
 ## Adding an image
 

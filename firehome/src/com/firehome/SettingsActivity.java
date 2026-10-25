@@ -81,6 +81,8 @@ public class SettingsActivity extends HomeActivity {
                 return getString(R.string.wallpapers_empty);
             case CURRENT:
                 return getString(R.string.wallpapers_current);
+            case DENIED:
+                return getString(R.string.wallpapers_denied);
             case NOT_SET:
                 return getString(R.string.wallpapers_not_set);
             default:
