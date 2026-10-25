@@ -160,7 +160,7 @@ independent of the home screen.
 |---|---|
 | [`tools/remote.py`](tools/remote.py) | **A usable remote in your browser**: D-pad, OK, Back, Home, Menu, media and volume keys, arrow-key shortcuts, typing into the TV and a live screen preview. Works over ADB, or with `--no-adb` through the Fire TV app's API. |
 | [`tools/firetv.py`](tools/firetv.py) | Pairs with the stick through the same local API Amazon's Fire TV phone app uses (a PIN shows on the TV) and presses keys, with no ADB and no remote. This is how you reach Developer options on a stick without a remote. |
-| [`tools/tv.py`](tools/tv.py) | Pure-Python ADB client (shell, batch, push, pull); works where macOS blocks the `adb` binary. |
+| [`tools/tv.py`](tools/tv.py) | Pure-Python ADB client (shell, batch, push, pull, `--screenshot`, `--reboot`); works where macOS blocks the `adb` binary. Keeps its ADB key readable only by you. |
 | [`tools/disable.sh`](tools/disable.sh), [`restore.sh`](tools/restore.sh) | Record each package's state, then switch the list off; restore replays the record. `HIDE=1` for Fire OS 5. |
 | [`examples/`](examples/) | Debloat lists for five Fire TV devices. |
 

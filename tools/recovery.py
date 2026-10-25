@@ -32,6 +32,18 @@ SETTINGS = ("window_animation_scale", "transition_animation_scale", "animator_du
 # would leave the stock launcher off, so restore goes back to the stock one instead.
 CUSTOM_LAUNCHER = "com.gathin.tvhome"
 VERSION = 1
+# Core Android packages no list may disable: with one of these off, Android itself can stop booting
+# (#884: an original Mi TV Stick that lost its permission controller, package installer, ext services,
+# module metadata and mainline overlays never came back). The content providers in CORE_OK are the
+# exception, since tested lists turn them off and no TV feature uses them. disable.sh and disable.ps1
+# carry the same two patterns (tests/test_core_packages.py keeps the three in step).
+CORE_RE = re.compile(r"^(android|com\.android\.systemui|com\.android\.shell|com\.android\.phone|com\.android\.settings|com\.android\.tv\.settings|com\.(google\.)?android\.(permissioncontroller|packageinstaller|ext\.services|ext\.shared|modulemetadata)|com\.google\.android\.overlay\.modules.*|com\.android\.providers\..*)$")
+CORE_OK = re.compile(r"^com\.android\.providers\.(calendar|contacts|userdictionary|blockednumber)$")
+
+
+def core_packages(names):
+    """The names in a list that must never be disabled, in list order."""
+    return [n for n in names if CORE_RE.match(n) and not CORE_OK.match(n)]
 
 
 def read_list(path):
@@ -73,6 +85,22 @@ def load_record(path):
                          "replace the state recorded before the first change.")
     if record.get("version") != VERSION or not isinstance(record.get("packages"), dict):
         raise SystemExit(f"{path}: unknown recovery record format; move it aside deliberately.")
+    # The record is replayed on the TV's shell, so it gets the same checks as the list and the TV's
+    # answers did when it was written: a hand-edited or damaged file stops here, before any command.
+    for name, state in record["packages"].items():
+        if not PACKAGE_RE.fullmatch(name):
+            raise SystemExit(f"{path}: not a usable recovery record (not a package name: {name!r}); "
+                             "move it aside deliberately.")
+        if state not in ("absent", "disabled", "enabled"):
+            raise SystemExit(f"{path}: not a usable recovery record (unknown state for {name}: "
+                             f"{state!r}); move it aside deliberately.")
+    home = record.get("home")
+    if home is not None and not (isinstance(home, str) and HOME_RE.fullmatch(home)):
+        raise SystemExit(f"{path}: not a usable recovery record (not a Home component: {home!r}); "
+                         "move it aside deliberately.")
+    if not isinstance(record.get("settings", {}), dict):
+        raise SystemExit(f"{path}: not a usable recovery record (settings is not a mapping); "
+                         "move it aside deliberately.")
     return record
 
 
