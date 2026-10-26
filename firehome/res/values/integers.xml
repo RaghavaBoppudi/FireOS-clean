@@ -9,8 +9,21 @@
     <integer name="overlay_backdrop_fade_ms">600</integer>
     <integer name="overlay_timeout_ms">15000</integer>
     <integer name="interval_default_seconds">1800</integer>
+    <!-- how long the home sits idle before the screensaver; 0 is never. Same order as screensaver_captions -->
+    <integer-array name="screensaver_minutes">
+        <item>0</item>
+        <item>1</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>30</item>
+    </integer-array>
+    <integer name="screensaver_default_index">2</integer>
+    <integer name="screensaver_move_ms">10000</integer>
+    <integer name="screensaver_glide_ms">1600</integer>
+    <integer name="hint_ms">8000</integer>
 
-    <!-- How often the wallpaper changes, shortest first; same order as interval_badges in strings.xml -->
+    <!-- How often the wallpaper changes, shortest first; same order as interval_captions in strings.xml -->
     <integer-array name="interval_seconds">
         <item>30</item>
         <item>60</item>

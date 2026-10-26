@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
  *
  * What happens when:
  *  - the repository has at least one usable image: only those are used;
- *  - the repository is reachable but has none (or is empty): the cache is cleared, so the bundled gradients are used;
+ *  - the repository is reachable but has none (or is empty): the cache is cleared, so the built-in wallpapers are used;
  *  - GitHub cannot be reached, or answers with an error: the cache is left as it is.
  *
  * The file name carries the order and the credit: "3-Raghava-Boppudi.jpg" comes third and is credited to Raghava
@@ -68,6 +68,9 @@ final class RemoteWallpapers {
     private static final String TOKEN = "token";
     private static final String API_HOST = "api.github.com";
     private static final AtomicBoolean running = new AtomicBoolean();
+    // who is waiting to hear how the sync now running went; with running, only touched holding this lock
+    private static final Object lock = new Object();
+    private static final List<Callback> waiting = new ArrayList<>();
     private static volatile String token = "";   // set at the start of each sync, which only one thread runs at a time
     private static final Handler main = new Handler(Looper.getMainLooper());
 
@@ -140,7 +143,10 @@ final class RemoteWallpapers {
         start(context, false, null);
     }
 
-    /** Starts a sync now, due or not, and reports how it went on the main thread. False if one is already running. */
+    /**
+     * Starts a sync now, due or not, and reports how it went on the main thread. If one is already running, this joins
+     * it and is told when it ends. False only if there was nothing to do.
+     */
     static boolean syncNow(Context context, Callback callback) {
         return start(context, true, callback);
     }
@@ -158,29 +164,43 @@ final class RemoteWallpapers {
         if (!force && since >= 0 && since < (state.getBoolean("ok", false) ? REFRESH_MS : RETRY_MS)) {
             return false;
         }
-        if (!running.compareAndSet(false, true)) {
-            return false;
+        synchronized (lock) {
+            if (callback != null) {
+                waiting.add(callback);
+            }
+            if (!running.compareAndSet(false, true)) {
+                return force;   // one is running: a press that wanted an answer will have it when that one ends
+            }
         }
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 // this is housekeeping: it must never take the processor from what is on screen
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                Outcome outcome;
+                Outcome outcome = Outcome.OFFLINE;
+                int count = 0;
                 try {
                     state.edit().putLong("attempt", System.currentTimeMillis()).putBoolean("ok", false).apply();
-                    int count = sync(app, state);
+                    count = sync(app, state);
                     state.edit().putBoolean("ok", true).apply();
                     Wallpapers.get(app).reload();
                     outcome = count < 0 ? Outcome.CURRENT : count == 0 ? Outcome.EMPTY : Outcome.SYNCED;
-                    report(callback, outcome, Math.max(count, 0));
+                    count = Math.max(count, 0);
                 } catch (DeniedException e) {
-                    report(callback, Outcome.DENIED, 0);
+                    outcome = Outcome.DENIED;
                 } catch (IOException | JSONException e) {
                     // offline, rate limited or unexpected: keep what is cached and try again later
-                    report(callback, Outcome.OFFLINE, 0);
+                    outcome = Outcome.OFFLINE;
                 } finally {
-                    running.set(false);
+                    List<Callback> told;
+                    synchronized (lock) {
+                        told = new ArrayList<>(waiting);
+                        waiting.clear();
+                        running.set(false);
+                    }
+                    for (Callback each : told) {
+                        report(each, outcome, count);
+                    }
                 }
             }
         }, "wallpaper-sync");

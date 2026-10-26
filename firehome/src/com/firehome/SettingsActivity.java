@@ -6,16 +6,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.graphics.drawable.Drawable;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Settings as a dock of solid icons, the selected one named above it. Display & Sounds is left out: Amazon locks it to
+ * Settings as a grid of solid icons, each with its name under it. Display & Sounds is left out: Amazon locks it to
  * its own launcher with a signature permission, so no other app can open it. The system's own entry point
  * (Settings.ACTION_SETTINGS) goes through Amazon's launcher, so this opens the pages Amazon's Settings grid links
- * to straight from the Settings app instead. The last tile is this app's own: it steps through how often the
- * background changes, and one that fetches new wallpapers now. Back returns to the home screen.
+ * to straight from the Settings app instead. The last two are this app's own: one steps through how often the
+ * wallpaper changes, showing the choice under its name, and one fetches new wallpapers now. Back returns to the home
+ * screen.
  */
 public class SettingsActivity extends HomeActivity {
     private static final int[] LABELS = {
@@ -79,23 +81,23 @@ public class SettingsActivity extends HomeActivity {
         for (int i = 0; i < LABELS.length; i++) {
             Drawable glyph = i == NETWORK ? WifiSignal.glyph(this, WifiSignal.level(this))
                     : getResources().getDrawable(ICONS[i]);
-            Tile tile = Tile.opening(getString(LABELS[i]), glyph, glyph, new Intent(ACTIONS[i]));
+            Tile tile = Tile.setting(ACTIONS[i], getString(LABELS[i]), glyph, new Intent(ACTIONS[i]));
             if (i == NETWORK) {
                 network = tile;
             }
             tiles.add(tile);
         }
-        tiles.add(Tile.running("background", getString(R.string.settings_background),
-                getResources().getDrawable(R.drawable.ic_background), Wallpapers.get(this).intervalBadge(),
+        tiles.add(Tile.setting("timer", getString(R.string.settings_background),
+                getResources().getDrawable(R.drawable.ic_timer), Wallpapers.get(this).intervalCaption(),
                 new Tile.Action() {
                     @Override
                     public String run() {
                         Wallpapers.get(SettingsActivity.this).nextInterval();
                         wallpaper().refresh();
-                        return Wallpapers.get(SettingsActivity.this).intervalBadge();
+                        return Wallpapers.get(SettingsActivity.this).intervalCaption();
                     }
                 }));
-        tiles.add(Tile.running("refresh", getString(R.string.settings_refresh),
+        tiles.add(Tile.setting("refresh", getString(R.string.settings_refresh),
                 getResources().getDrawable(R.drawable.ic_refresh), null, new Tile.Action() {
                     @Override
                     public String run() {
@@ -111,7 +113,33 @@ public class SettingsActivity extends HomeActivity {
                         return null;
                     }
                 }));
+        tiles.add(Tile.setting("order", getString(R.string.settings_dock_order),
+                getResources().getDrawable(R.drawable.ic_dock_order), orderCaption(), new Tile.Action() {
+                    @Override
+                    public String run() {
+                        DockStore store = new DockStore(SettingsActivity.this);
+                        store.setAlphabetical(!store.alphabetical());
+                        return orderCaption();
+                    }
+                }));
+        tiles.add(Tile.setting("screensaver", getString(R.string.settings_screensaver),
+                getResources().getDrawable(R.drawable.ic_screensaver), Screensaver.caption(this), new Tile.Action() {
+                    @Override
+                    public String run() {
+                        Screensaver.next(SettingsActivity.this);
+                        return Screensaver.caption(SettingsActivity.this);
+                    }
+                }));
         return tiles;
+    }
+
+    private String orderCaption() {
+        return getString(new DockStore(this).alphabetical() ? R.string.order_alphabetical : R.string.order_recent);
+    }
+
+    @Override
+    protected void show(LinearLayout shelf, List<Tile> tiles) {
+        showGrid(shelf, tiles, getResources().getDimensionPixelSize(R.dimen.tile_height_setting));
     }
 
     @Override

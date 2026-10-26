@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Three bars, each shorter than the one above: a list in order. Drawn for this project (CC0, see NOTICE.md). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="960" android:viewportHeight="960">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M140,200L820,200L820,330L140,330ZM140,415L640,415L640,545L140,545ZM140,630L460,630L460,760L140,760Z" />
+</vector>

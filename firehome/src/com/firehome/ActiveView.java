@@ -15,9 +15,13 @@ import android.widget.FrameLayout;
  */
 abstract class ActiveView extends FrameLayout {
     /** How bright a mark or glyph rests at; selected is full. Shared, so every control rests alike. */
-    static final float RESTING_ALPHA = 0.8f;
+    static final float RESTING_ALPHA = 0.5f;
 
-    private static final PathInterpolator EASE = new PathInterpolator(0.4f, 0f, 0.2f, 1f);
+    /**
+     * The curve for anything the user sets going. It leaves at once, so a press is answered in the first frame, and
+     * settles without overshoot, as a critically damped spring does; a curve that eases in would feel late.
+     */
+    static final PathInterpolator OUT = new PathInterpolator(0.2f, 0f, 0f, 1f);
 
     private static final Property<ActiveView, Float> ACTIVE = new Property<ActiveView, Float>(Float.class, "active") {
         @Override
@@ -57,7 +61,7 @@ abstract class ActiveView extends FrameLayout {
         }
         animator = ObjectAnimator.ofFloat(this, ACTIVE, active, gainFocus ? 1f : 0f);
         animator.setDuration(durationMs);
-        animator.setInterpolator(EASE);
+        animator.setInterpolator(OUT);
         animator.start();
     }
 }

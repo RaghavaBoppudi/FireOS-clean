@@ -30,11 +30,19 @@ public class WallpaperView extends View {
     /** Told which photo is showing, for the credit. */
     interface Listener {
         void onPhoto(Wallpapers.Photo photo);
+
+        /**
+         * How light the picture is behind the date and behind the buttons: 0 for dark, so white, to 1 for light, so
+         * black. They are told apart because a photograph can be bright where one is and dark where the other is.
+         */
+        void onTone(float dateLight, float buttonLight);
     }
 
     private static final int FADE_STEPS = 24;
     private static final float SCRIM_TOP_HEIGHT = 0.4f;
     private static final float SCRIM_BOTTOM_START = 0.7f;
+    // a top strip lighter than this takes dark text; the scrim that keeps white text readable goes with it
+    private static final float LIGHT_ABOVE = 0.5f;
 
     private final Wallpapers wallpapers;
     private final Handler handler = new Handler();
@@ -94,6 +102,7 @@ public class WallpaperView extends View {
         this.listener = listener;
         if (to != null) {
             listener.onPhoto(to.photo);
+            notifyTone();
         }
     }
 
@@ -163,7 +172,38 @@ public class WallpaperView extends View {
         changed();
     }
 
+    /** 0 to 1 between a dark place and a light one, following the cross-fade between two photos. */
+    private float tone(boolean forDate) {
+        float now = from != null && (forDate ? from.dateLight : from.buttonLight) > LIGHT_ABOVE ? 1f : 0f;
+        float next = to != null && (forDate ? to.dateLight : to.buttonLight) > LIGHT_ABOVE ? 1f : 0f;
+        return now + (next - now) * mix;
+    }
+
+    private void notifyTone() {
+        if (listener != null) {
+            listener.onTone(tone(true), tone(false));
+        }
+    }
+
+    /**
+     * The photo on show reduced to a handful of colours and brought back up in steps, each smoothing the one before,
+     * for the screensaver: no shape is left, only a gradient of where the light and dark were. Null before there is a
+     * photo.
+     */
+    Bitmap softest() {
+        if (to == null) {
+            return null;
+        }
+        Bitmap few = Bitmap.createScaledBitmap(to.blur, 5, 3, true);
+        Bitmap some = Bitmap.createScaledBitmap(few, 20, 12, true);
+        Bitmap many = Bitmap.createScaledBitmap(some, 80, 45, true);
+        few.recycle();
+        some.recycle();
+        return many;
+    }
+
     private void changed() {
+        notifyTone();
         invalidate();
         for (View follower : followers) {
             follower.invalidate();
@@ -188,8 +228,12 @@ public class WallpaperView extends View {
             }
         }
         scrim.setShader(topScrim);
+        // the wash that helps white text is needed only where white text sits on something light: not when either end of
+        // the bar has a light picture behind it, which has black text, nor when the picture is dark already
+        scrim.setAlpha(Math.round(255 * (1f - Math.max(tone(true), tone(false)))));
         canvas.drawRect(0, 0, getWidth(), getHeight() * SCRIM_TOP_HEIGHT, scrim);
         scrim.setShader(bottomScrim);
+        scrim.setAlpha(255);
         canvas.drawRect(0, getHeight() * SCRIM_BOTTOM_START, getWidth(), getHeight(), scrim);
     }
 

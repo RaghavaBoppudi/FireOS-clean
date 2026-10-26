@@ -5,12 +5,36 @@
     <string name="appstore">Appstore</string>
     <string name="settings">Settings</string>
     <string name="all_apps">All apps</string>
+    <string name="edit_dock">Edit dock</string>
+    <string name="add_app">Add an app</string>
+    <!-- the line above the dock while it is being edited -->
+    <string name="edit_idle">OK picks an app up. OK on + adds one. Back to finish.</string>
+    <string name="edit_holding">Arrows move it. OK places it. Up takes it off the dock. Back cancels.</string>
+    <string name="edit_lifted">OK removes it. Down puts it back.</string>
+    <string name="edit_adding">OK adds an app to the dock. Back to finish.</string>
+    <string name="edit_adding_none">Every app is on the dock already.</string>
+    <string name="edit_last">Can\'t remove the only app on the dock</string>
+    <string name="edit_full">The dock is full: 6 apps is the most</string>
     <string name="settings_network">Network</string>
-    <string name="settings_controllers">Controllers &amp; Bluetooth</string>
-    <string name="settings_applications">Applications</string>
+    <string name="settings_controllers">Controllers</string>
+    <string name="settings_applications">Apps</string>
     <string name="settings_device">My Fire TV</string>
-    <string name="settings_background">Background</string>
-    <string name="settings_refresh">Refresh wallpapers</string>
+    <string name="settings_background">Wallpaper timer</string>
+    <string name="settings_refresh">New wallpapers</string>
+    <string name="settings_dock_order">Dock order</string>
+    <string name="order_recent">Recents first</string>
+    <string name="order_alphabetical">A to Z</string>
+    <string name="settings_screensaver">Screensaver</string>
+    <!-- under the Screensaver setting; same order as screensaver_minutes in integers.xml -->
+    <string-array name="screensaver_captions">
+        <item>Off</item>
+        <item>After 1 min</item>
+        <item>After 5 min</item>
+        <item>After 10 min</item>
+        <item>After 15 min</item>
+        <item>After 30 min</item>
+    </string-array>
+    <string name="first_run_hint">Customize your dock with the pencil at the top right</string>
     <string name="wallpapers_checking">Checking GitHub…</string>
     <string name="wallpapers_not_set">No wallpaper repository is set: using the built-in wallpapers</string>
     <string name="wallpapers_current">Wallpapers are up to date</string>
@@ -22,17 +46,17 @@
         <item quantity="other">%d wallpapers from GitHub</item>
     </plurals>
     <string name="credit">\u00a9 %1$s</string>
-    <!-- shown inside the Background tile's frame; same order as interval_seconds in integers.xml -->
-    <string-array name="interval_badges">
-        <item>30 sec</item>
-        <item>1 min</item>
-        <item>5 min</item>
-        <item>15 min</item>
-        <item>30 min</item>
-        <item>1 hr</item>
-        <item>3 hr</item>
-        <item>6 hr</item>
-        <item>12 hr</item>
+    <!-- under the Wallpaper timer setting; same order as interval_seconds in integers.xml -->
+    <string-array name="interval_captions">
+        <item>Every 30 sec</item>
+        <item>Every minute</item>
+        <item>Every 5 min</item>
+        <item>Every 15 min</item>
+        <item>Every 30 min</item>
+        <item>Every hour</item>
+        <item>Every 3 hours</item>
+        <item>Every 6 hours</item>
+        <item>Every 12 hours</item>
         <item>Daily</item>
     </string-array>
     <string name="amazon_home_notice">Amazon\'s home for the next 10 minutes</string>

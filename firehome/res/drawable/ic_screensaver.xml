@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A screen on its stand: a solid bezel round a hollow glass. Drawn for this project (CC0, see NOTICE.md). The glass
+     winds the opposite way to the bezel, which is what leaves it empty. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="960" android:viewportHeight="960">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M100,160L860,160L860,660L100,660ZM190,250L190,570L770,570L770,250ZM360,720L600,720L600,800L360,800Z" />
+</vector>
