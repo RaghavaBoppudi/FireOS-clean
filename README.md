@@ -1,34 +1,37 @@
 # FireOS-clean
 
-**A minimal, flat home screen for Fire TV Stick.**
+**A minimal home screen for Fire TV Stick, flat or over your own wallpapers.**
 
-Amazon's home is full of banners, sponsored rows and autoplay. This replaces it with a calm, flat screen: one line of
-date and time, and a row of glass discs for the apps you choose, in the middle of the screen. Light by default, with a
-dark look in Settings.
+Amazon's home is full of banners, sponsored rows and autoplay. This replaces it with a calm screen: one line of date
+and time, and a row of glass discs for the apps you choose, in the middle. Over a flat ground (light or dark), or over
+wallpapers you keep in a GitHub repository, with the discs as liquid glass.
 
-![Home](docs/screenshots/home.jpg)
+![Home with a wallpaper](docs/screenshots/home-wallpaper.jpg)
 
-| Dark | Settings |
+| Flat, light | Flat, dark |
 |---|---|
-| ![Dark](docs/screenshots/home-dark.jpg) | ![Settings](docs/screenshots/settings.jpg) |
+| ![Home](docs/screenshots/home.jpg) | ![Dark](docs/screenshots/home-dark.jpg) |
+
+| Settings, with a wallpaper | Settings, flat |
+|---|---|
+| ![Settings with a wallpaper](docs/screenshots/settings-wallpaper.jpg) | ![Settings](docs/screenshots/settings.jpg) |
 
 | Editing the dock | Screensaver |
 |---|---|
 | ![Editing the dock](docs/screenshots/edit.jpg) | ![Screensaver](docs/screenshots/screensaver.jpg) |
 
-(The clock reads 09:41 in every picture: it is fixed for the screenshots.)
-
-Looking for the earlier version with rotating wallpapers? It is tagged [`wallpaper-home`](https://github.com/RaghavaBoppudi/FireOS-clean/tree/wallpaper-home).
+(The clock reads 09:41 in every picture: it is fixed for the screenshots. The photograph is by Raghava Boppudi.)
 
 ## What you get
 
-- **A flat, quiet screen.** An off-white ground (or a near-black one), up to six apps as discs of frosted glass, the name of the selected one fading in under it. Every other screen uses the same discs.
+- **A quiet screen.** Up to six apps as discs of glass in the middle, the name of the selected one fading in under it. Every other screen uses the same discs.
+- **Your own wallpapers.** Switch **Settings > Wallpaper** on and the home shows full-screen photographs from a GitHub repository of yours (public or private), changing every half hour, with a credit for the photographer. The discs become liquid glass: the wallpaper, softly blurred, behind a bright rim and a gloss. With none of yours, it uses nine built-in dunes. See [Your own wallpapers](#your-own-wallpapers).
 - **Apps you choose.** Up to six on the dock, picked with the pencil at the bottom (see [Make the dock yours](#make-the-dock-yours)). Well-known apps show their own mark; any other has its mark cut from its icon (an app that is only a name shows its first letter), so apps you install later fit in automatically. Every other app, the Appstore included, is under the all apps button.
-- **Light and dark.** **Settings > Theme** switches between them. The dark look is tonal glass: graphite discs a shade lighter than the screen, with a rim of light and a soft glow.
+- **Light and dark.** With the wallpaper off, **Settings > Theme** switches between a light and a dark ground. The dark look is tonal glass: graphite discs a shade lighter than the screen, with a rim of light and a soft glow. A wallpaper brings its own look (white text over the picture), so the theme is dimmed while it is on.
 - **A screensaver that is only the time.** After a few idle minutes the screen is bare, with the date and time drifting across it so no pixel is held in place. Any button wakes it.
 - **Settings in the same style.** Network, Controllers, Apps, My Fire TV, the theme, the dock order and the screensaver delay. Each shows its name, and the ones you change show their current value.
 - **Covers Amazon's home completely.** A "Launching Home" screen is held until the new home is really on screen, so Amazon's home is never seen. The handover takes about a second. It also starts early at boot and survives the app being updated.
-- **No account, no cloud, no tracking.** The app has no network permission at all.
+- **No account, no cloud, no tracking.** The only network use is reading your wallpaper repository, and only if you name one; with the wallpaper off, it is never used.
 - **Reversible.** One command puts Amazon's home back.
 
 ## How it works
@@ -40,12 +43,13 @@ Android 9); other Fire OS 7 devices should work, and Fire OS 5 is untested for t
 
 ## Size
 
-The app is about 0.07 MB, with no images in it: the screen is drawn, and the only pictures are the vector logos and
-glyphs. It has no network permission, and its whole source is about 2,400 lines of Java.
+The app is about 0.25 MB, most of it the nine built-in dunes; without them it is under 0.1 MB. The screen is drawn,
+and the other pictures are vector logos and glyphs. Its whole source is about 3,000 lines of Java.
 
 ## Requirements
 
 - A Fire TV with ADB debugging on, and a computer on the same network (macOS or Linux; a JDK 17 and the Android SDK to build).
+- Optional: a GitHub account for your own wallpapers.
 
 ## Build and install
 
@@ -114,6 +118,68 @@ installer prints which names it found and which it did not. A dock you have alre
 After the home has sat idle it shows the bare screen with the date and time on it, moving to a new place every ten
 seconds. Any button wakes it, and that press does nothing else. Choose the delay under **Settings > Screensaver**: Off,
 1, 5 (the default), 10, 15 or 30 minutes. It never starts while you are editing the dock.
+
+## Your own wallpapers
+
+The **Wallpaper** setting is on by default. Out of the box it uses nine sand-dune wallpapers built into the app. To show
+your own images instead, the app downloads them from a GitHub repository of yours, public or private. Set it up once:
+
+1. **Create the repository.** On GitHub choose **New repository**, give it a name such as `tv-wallpapers`, set it
+   to **Public** (or Private, see below) and create it. (It can be empty. Public is simplest; for a private one see below.)
+2. **Add images.** Open the repository, choose **Add file > Upload files**, drag your images in and **Commit changes**.
+   Use JPG, PNG or WebP at the **top level** (not in a folder). **16:9** images are ideal (1920 × 1080 is enough, 3840 × 2160
+   is plenty). Any other shape or size is fine too: the TV cuts the middle 16:9 out of it and scales it to 1920 × 1080
+   itself, one image at a time, in the background, so even a 100-megapixel photo is safe. GitHub's own limit of 100 MB
+   per file applies, and smaller files simply download faster.
+   From a terminal: `git add . && git commit -m "Add wallpapers" && git push`.
+   The folder [`wallpaper-repo-template/`](wallpaper-repo-template/) has a ready-made README you can copy into the repository.
+3. **Name the files to order and credit them.** Name each image `NUMBER-First-Last.jpg`, for example
+   `1-Raghava-Boppudi.jpg`, `2-Allen-Daniel.jpg`. The number is the order the wallpapers rotate in (1, 2, 3 ... 10, 11
+   are in numeric order). The words after it are the photographer: the screen shows `© Raghava Boppudi` bottom right.
+   A file with no number in front is shown after the numbered ones, and with no credit. Rename a file on GitHub with
+   the pencil icon on its page, or with `git mv`.
+4. **Point the app at it.** Edit [`firehome/res/values/config.xml`](firehome/res/values/config.xml) and set
+   `wallpaper_repo` to `YOUR-GITHUB-USERNAME/YOUR-REPO-NAME`. If the images are in a folder, put its name in
+   `wallpaper_path`. Then run `firehome/install.sh` again.
+5. **Check it.** On the TV open **Settings > Refresh** (it is dimmed while the wallpaper is off). It says "N wallpapers from GitHub" when it found
+   your images. After that new images are picked up automatically, every 30 minutes, whenever Home opens.
+
+### Keeping the repository private
+
+Your images can stay private, so only you can see them and the TV still gets them. The TV then needs a read-only
+**access token**:
+
+1. On GitHub open **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**.
+2. Set **Repository access** to **Only select repositories** and choose your wallpaper repository. Under **Permissions >
+   Repository permissions** set **Contents** to **Read-only**. Nothing else. Pick an expiry (a year is reasonable).
+3. Copy the token (it starts with `github_pat_`). Save it in the git-ignored file `firehome/wallpaper-token`, or pass it for one run:
+   `WALLPAPER_TOKEN=github_pat_... firehome/install.sh`. The installer sends it to the TV over ADB; it is kept in the app's
+   private storage, **not** in the APK and not in git, and is only ever sent to GitHub.
+4. Open **Settings > Refresh** on the TV. "GitHub won't show this TV the repository" means the name or the token is wrong.
+   Remove the token any time with `firehome/install.sh --clear-token`. When it expires, make a new one and run `install.sh` again.
+
+Anyone with ADB access to your TV could read the token, which is why it should be read-only and for this one repository.
+Before switching a repository to private, install with the token first: until then the TV can't see it.
+
+How it behaves:
+
+| Situation | What the TV shows |
+|---|---|
+| The repository has at least one valid image | Only your images, in number order |
+| The repository is empty or has no valid images | The built-in dunes |
+| No repository is set in `config.xml` | The built-in dunes, and no network use |
+| GitHub is unreachable | The last images it downloaded; the dunes if there are none |
+
+If Refresh says "The repository has no images yet": check the images are on the default branch at the top level (or in
+the folder you set as `wallpaper_path`) and are JPG, PNG or WebP. For a public repository, opening
+`https://api.github.com/repos/YOUR-GITHUB-USERNAME/YOUR-REPO-NAME/contents/` in a browser should list them. A private
+repository shows "Not Found" there by design; use the token steps above instead. If it says "GitHub won't show this TV the
+repository", the repository name in `config.xml` or the token is wrong.
+Anyone who can push to the repository controls your wallpapers, so keep its write access to yourself, and only
+add images you have the right to publish. The built-in dunes are generated by
+[`firehome/wallpapers/generate.py`](firehome/wallpapers/generate.py) (needs numpy and Pillow) and are CC0.
+
+Turn the wallpaper off under **Settings > Wallpaper** to get the flat look back, and the network is not used at all.
 
 ---
 

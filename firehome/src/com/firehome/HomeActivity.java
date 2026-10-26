@@ -7,10 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,10 +39,12 @@ public class HomeActivity extends Activity {
 
     // An app was opened from one of these screens: when Home is next shown, select the first tile, which is now it
     private static boolean appOpened;
+    private static final String STATE_SELECTED = "selected";
 
     private final Map<String, Bubble> views = new LinkedHashMap<>();   // by Tile.key, in shelf order
     private final List<String> shown = new ArrayList<>();
-    private boolean dark;                 // the look this screen was made in
+    private int look;                     // the theme this screen was made in, and the wallpaper it shows
+    private Bitmap pictured;
     private AppCatalog catalog;
     private DockStore store;
     private DockEditor editor;            // only on Home itself
@@ -60,11 +64,14 @@ public class HomeActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle state) {
+        Wallpaper.load(this);
         Look.apply(this);
-        dark = Look.dark(this);
+        look = Look.theme(this);
         super.onCreate(state);
         startService(new Intent(this, HomeWatcher.class));
         setContentView(layout());
+        showWallpaper();
+        selected = state != null ? state.getString(STATE_SELECTED) : null;    // a look was changed: stay on the tile
         catalog = new AppCatalog(this);
         store = new DockStore(this);
         shelf = (LinearLayout) findViewById(R.id.shelf);
@@ -103,9 +110,13 @@ public class HomeActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (Look.dark(this) != dark) {
-            recreate();            // the look was changed on another screen
+        Wallpaper.load(this);
+        if (look != Look.theme(this) || pictured != Wallpaper.sharp()) {
+            recreate();            // the look or the wallpaper changed, on another screen or with the half hour
             return;
+        }
+        if (Look.wallpaper(this)) {
+            RemoteWallpapers.syncIfDue(this);
         }
         HomeWatcher.pause(0);      // back from an app or Amazon's home: Home brings this screen up again
         if (screensaver != null) {
@@ -190,6 +201,23 @@ public class HomeActivity extends Activity {
     /** The view of a tile, once the shelf is laid out; null if it is not shown. */
     protected final Bubble viewOf(Tile tile) {
         return views.get(tile.key);
+    }
+
+    private void showWallpaper() {
+        pictured = Wallpaper.sharp();
+        ImageView backdrop = (ImageView) findViewById(R.id.backdrop);
+        backdrop.setImageBitmap(pictured);
+        backdrop.setVisibility(pictured != null ? View.VISIBLE : View.GONE);
+        TextView credit = (TextView) findViewById(R.id.credit);
+        String photographer = Wallpaper.credit();
+        credit.setText(photographer != null ? getString(R.string.credit, photographer) : "");
+        credit.setVisibility(pictured != null && photographer != null ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putString(STATE_SELECTED, selected);
     }
 
     /** The tile that has the selection, by Tile.key; null before anything has. */
@@ -297,6 +325,9 @@ public class HomeActivity extends Activity {
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!tile.enabled) {
+                    return;
+                }
                 if (tile.action != null) {
                     ((Bubble) v).setCaption(tile.action.run());
                 } else if (tile.intent != null) {

@@ -6,13 +6,14 @@ import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 
 /**
- * The two looks of the home, Light (the default) and Dark, and which of them the user has chosen. The colours are
- * attributes of the themes in styles.xml, so a view asks the theme it is in for them and nothing else knows which look
- * is on.
+ * The looks of the home: Light (the default) and Dark, which the user chooses between, and the one a wallpaper gives
+ * it. The colours are attributes of the themes in styles.xml, so a view asks the theme it is in for them and nothing
+ * else knows which look is on.
  */
 final class Look {
     private static final String PREFERENCES = "look";
     private static final String KEY_DARK = "dark";
+    private static final String KEY_WALLPAPER = "wallpaper";
 
     private Look() {
     }
@@ -22,8 +23,9 @@ final class Look {
         activity.setTheme(theme(activity));
     }
 
+    /** A wallpaper has one look of its own; without one, the light or the dark look the user chose. */
     static int theme(Context context) {
-        return dark(context) ? R.style.Dark : R.style.Light;
+        return wallpaper(context) ? R.style.Photo : dark(context) ? R.style.Dark : R.style.Light;
     }
 
     static boolean dark(Context context) {
@@ -32,6 +34,15 @@ final class Look {
 
     static void toggle(Context context) {
         prefs(context).edit().putBoolean(KEY_DARK, !dark(context)).apply();
+    }
+
+    /** True (the default) if a wallpaper is shown behind the discs; false, the flat ground. */
+    static boolean wallpaper(Context context) {
+        return prefs(context).getBoolean(KEY_WALLPAPER, true);
+    }
+
+    static void toggleWallpaper(Context context) {
+        prefs(context).edit().putBoolean(KEY_WALLPAPER, !wallpaper(context)).apply();
     }
 
     /** One of the theme's colours (R.attr.ground, disc, ink or inkDim) in this context's theme. */

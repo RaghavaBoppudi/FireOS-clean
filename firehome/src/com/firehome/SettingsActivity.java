@@ -14,8 +14,9 @@ import java.util.List;
  * Settings as a row of discs, each with its name under it. Display & Sounds is left out: Amazon locks it to its own
  * launcher with a signature permission, so no other app can open it. The system's own entry point
  * (Settings.ACTION_SETTINGS) goes through Amazon's launcher, so this opens the pages Amazon's Settings grid links to
- * straight from the Settings app instead. The last three are this app's own: the theme, the order of the dock and the
- * screensaver, each showing its choice under its name. Back returns to the home screen.
+ * straight from the Settings app instead. The last five are this app's own: the wallpaper, fetching new ones, the
+ * theme (which a wallpaper takes over), the order of the dock and the screensaver, each showing its choice under its
+ * name. Back returns to the home screen.
  */
 public class SettingsActivity extends HomeActivity {
     private static final int[] LABELS = {
@@ -85,15 +86,44 @@ public class SettingsActivity extends HomeActivity {
             }
             tiles.add(tile);
         }
-        tiles.add(Tile.setting("theme", getString(R.string.settings_theme), getResources().getDrawable(R.drawable.ic_theme),
-                themeCaption(), new Tile.Action() {
+        tiles.add(Tile.setting("wallpaper", getString(R.string.settings_wallpaper),
+                getResources().getDrawable(R.drawable.ic_wallpaper), wallpaperCaption(), new Tile.Action() {
+                    @Override
+                    public String run() {
+                        Look.toggleWallpaper(SettingsActivity.this);
+                        recreate();
+                        return null;
+                    }
+                }));
+        // always there, so the row does not shift when the wallpaper goes on or off; dimmed while there is nothing to fetch
+        Tile refresh = Tile.setting("refresh", getString(R.string.settings_refresh),
+                getResources().getDrawable(R.drawable.ic_refresh), null, new Tile.Action() {
+                    @Override
+                    public String run() {
+                        say(getString(R.string.wallpapers_checking));
+                        RemoteWallpapers.syncNow(SettingsActivity.this, new RemoteWallpapers.Callback() {
+                            @Override
+                            public void onDone(RemoteWallpapers.Outcome outcome, int count) {
+                                if (!isFinishing()) {
+                                    say(refreshResult(outcome, count));
+                                }
+                            }
+                        });
+                        return null;
+                    }
+                });
+        tiles.add(Look.wallpaper(this) ? refresh : refresh.disabled(getString(R.string.wallpaper_off)));
+        Tile theme = Tile.setting("theme", getString(R.string.settings_theme),
+                getResources().getDrawable(R.drawable.ic_theme), themeCaption(), new Tile.Action() {
                     @Override
                     public String run() {
                         Look.toggle(SettingsActivity.this);
                         recreate();
                         return null;
                     }
-                }));
+                });
+        // a wallpaper brings its own look: the theme has nothing to choose until it is off
+        tiles.add(Look.wallpaper(this) ? theme.disabled(getString(R.string.theme_fixed)) : theme);
         tiles.add(Tile.setting("order", getString(R.string.settings_dock_order),
                 getResources().getDrawable(R.drawable.ic_dock_order), orderCaption(), new Tile.Action() {
                     @Override
@@ -112,6 +142,27 @@ public class SettingsActivity extends HomeActivity {
                     }
                 }));
         return tiles;
+    }
+
+    private String refreshResult(RemoteWallpapers.Outcome outcome, int count) {
+        switch (outcome) {
+            case SYNCED:
+                return getResources().getQuantityString(R.plurals.wallpapers_synced, count, count);
+            case EMPTY:
+                return getString(R.string.wallpapers_empty);
+            case CURRENT:
+                return getString(R.string.wallpapers_current);
+            case DENIED:
+                return getString(R.string.wallpapers_denied);
+            case NOT_SET:
+                return getString(R.string.wallpapers_not_set);
+            default:
+                return getString(R.string.wallpapers_offline);
+        }
+    }
+
+    private String wallpaperCaption() {
+        return getString(Look.wallpaper(this) ? R.string.wallpaper_on : R.string.wallpaper_off);
     }
 
     private String themeCaption() {

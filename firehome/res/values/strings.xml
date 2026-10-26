@@ -22,6 +22,22 @@
     <string name="settings_dock_order">Dock order</string>
     <string name="order_recent">Recents first</string>
     <string name="order_alphabetical">A to Z</string>
+    <string name="settings_wallpaper">Wallpaper</string>
+    <string name="settings_refresh">Refresh</string>
+    <string name="wallpapers_checking">Checking GitHub…</string>
+    <string name="wallpapers_not_set">No wallpaper repository is set: using the built-in wallpapers</string>
+    <string name="wallpapers_current">Wallpapers are up to date</string>
+    <string name="wallpapers_empty">The repository has no images yet: using the built-in wallpapers</string>
+    <string name="wallpapers_denied">GitHub won\'t show this TV the repository: check its name and the access token</string>
+    <string name="wallpapers_offline">Couldn\'t reach GitHub</string>
+    <plurals name="wallpapers_synced">
+        <item quantity="one">%d wallpaper from GitHub</item>
+        <item quantity="other">%d wallpapers from GitHub</item>
+    </plurals>
+    <string name="credit">\u00a9 %1$s</string>
+    <string name="theme_fixed">Wallpaper on</string>
+    <string name="wallpaper_on">On</string>
+    <string name="wallpaper_off">Off</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>

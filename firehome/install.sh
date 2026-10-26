@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Build and install the home screen on a Fire TV, grant what its watcher needs, and open it.
 # Usage:   TV_HOST=192.168.1.50 firehome/install.sh
+# Token:   WALLPAPER_TOKEN=... firehome/install.sh          (a private wallpaper repository; see the README)
+#          TV_HOST=192.168.1.50 firehome/install.sh --clear-token
 # Dock:    firehome/install.sh --dock "Netflix,YouTube,Prime Video"     the apps on the dock, by name or package
 #          (more than six: the first six by name; a dock the user has edited is kept unless --reset-dock is added)
 # Undo:    TV_HOST=192.168.1.50 firehome/install.sh --remove     (Amazon's home is back on the next Home press)
@@ -21,8 +23,14 @@ while [ $# -gt 0 ]; do
 done
 case "$DOCK" in *"'"*) echo "--dock may not contain a quote"; exit 1;; esac
 
+if [ "${1:-}" = "--clear-token" ]; then
+  printf '%s\n' "am broadcast -n com.firehome/.TokenReceiver --es token ''" | tv --batch >/dev/null
+  echo "token removed from the TV"
+  exit 0
+fi
+
 if [ "${1:-}" = "--remove" ]; then
-  printf '%s\n' "pm uninstall com.firehome" "input keyevent 3" | tv --batch
+  printf '%s\n' "pm uninstall com.firehome" "input keyevent 3" | tv --batch | { [ -n "$TOKEN" ] && sed "s/$TOKEN/[token]/g" || cat; }
   exit 0
 fi
 
@@ -30,6 +38,13 @@ firehome/build.sh
 "$PY" -I tools/b64push.py firehome/build/firehome.apk /data/local/tmp/firehome.apk
 # Fire OS drops accessibility services set over ADB, but grants these: READ_LOGS lets the watcher see Home
 # presses, SYSTEM_ALERT_WINDOW lets it cover Amazon's home meanwhile, GET_USAGE_STATS orders the icons by use.
+# A private wallpaper repository needs a read-only GitHub token: from $WALLPAPER_TOKEN or the git-ignored file
+# firehome/wallpaper-token. It goes to the app's private storage, not into the APK. Nothing set: left as it is.
+TOKEN="${WALLPAPER_TOKEN:-}"
+[ -z "$TOKEN" ] && [ -f firehome/wallpaper-token ] && TOKEN="$(tr -d ' \r\n' < firehome/wallpaper-token)"
+case "$TOKEN" in *[!A-Za-z0-9_]*) echo "the wallpaper token may only contain letters, digits and _"; exit 1;; esac
+SEND_TOKEN=
+[ -n "$TOKEN" ] && SEND_TOKEN="am broadcast -n com.firehome/.TokenReceiver --es token $TOKEN"
 SEND_DOCK=
 [ -n "$DOCK" ] && SEND_DOCK="am broadcast -n com.firehome/.DockReceiver --es apps '$DOCK' --ez reset $RESET"
 printf '%s\n' \
@@ -39,5 +54,6 @@ printf '%s\n' \
   "cmd notification allow_listener com.firehome/com.firehome.BootListener" \
   "appops set com.firehome SYSTEM_ALERT_WINDOW allow" \
   "appops set com.firehome GET_USAGE_STATS allow" \
+  "$SEND_TOKEN" \
   "$SEND_DOCK" \
-  "am start -n com.firehome/.HomeActivity" | tv --batch
+  "am start -n com.firehome/.HomeActivity" | tv --batch | { [ -n "$TOKEN" ] && sed "s/$TOKEN/[token]/g" || cat; }

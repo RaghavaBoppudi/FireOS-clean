@@ -6,16 +6,6 @@
 
     <include layout="@layout/screen" />
 
-    <!-- the line of instructions while the dock is edited, and the one-time hint before it -->
-    <TextView
-        android:id="@+id/hint"
-        style="@style/Text.Caption"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="@dimen/hint_top"
-        android:alpha="0" />
-
     <!-- all apps, edit and settings, along the bottom edge -->
     <LinearLayout
         android:id="@+id/buttons"

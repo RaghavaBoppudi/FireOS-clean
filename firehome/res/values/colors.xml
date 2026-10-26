@@ -23,4 +23,19 @@
     <color name="shadow_spot_dark">#33FFFFFF</color>
     <color name="ink_dark">#FFF5F5F7</color>
     <color name="ink_dim_dark">#99F5F5F7</color>
+    <!-- Over a wallpaper: white ink with a shadow, on a dark ground that only shows where there is no picture -->
+    <color name="ground_photo">#FF111113</color>
+    <color name="lift_photo">#26FFFFFF</color>
+    <color name="ink_photo">#FFFFFFFF</color>
+    <color name="ink_dim_photo">#B3FFFFFF</color>
+    <color name="shadow_text_photo">#99000000</color>
+    <color name="shadow_text_none">#00000000</color>
+    <!-- The liquid glass of a disc over a wallpaper: a rim that is bright at the top, a tint that is lighter there too,
+         and a gloss, over the soft picture -->
+    <color name="glass_rim_top">#B3FFFFFF</color>
+    <color name="glass_rim_bottom">#33FFFFFF</color>
+    <color name="glass_tint_top">#38FFFFFF</color>
+    <color name="glass_tint_bottom">#0FFFFFFF</color>
+    <color name="glass_gloss">#4DFFFFFF</color>
+    <color name="glass_gloss_end">#00FFFFFF</color>
 </resources>

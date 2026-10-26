@@ -43,6 +43,9 @@ final class Bubble extends FrameLayout {
     private static final float RAISE_GROWTH = 0.15f;      // and each step of being raised makes it this much larger
     private static final float MARK_SHARE = 0.54f;        // the mark's share of the disc's width
     private static final float WIDE_SHARE = 0.72f;
+    private static final float GLOSS_SIDE = 0.14f;    // the gloss across the top of a glass disc, as shares of its width
+    private static final float GLOSS_DEPTH = 0.5f;    // and of its height left clear below the gloss
+    private static final float DISABLED_ALPHA = 0.4f;
     private static final float LETTER_SHARE = 0.4f;
     private static final float JIGGLE_DEGREES = 1.8f;
     private static final long JIGGLE_MS = 120;
@@ -120,16 +123,8 @@ final class Bubble extends FrameLayout {
 
         disc = new FrameLayout(context);
         if (!bare) {
-            // from the outside in: a rim of light fading down from the top, the glass, and a tone that comes up while
-            // the disc is selected
             highlight = oval(Look.colour(context, R.attr.discLift), Look.colour(context, R.attr.discLift));
-            LayerDrawable layers = new LayerDrawable(new Drawable[]{
-                    oval(Look.colour(context, R.attr.discRimTop), Look.colour(context, R.attr.discRimBottom)),
-                    oval(Look.colour(context, R.attr.discTop), Look.colour(context, R.attr.discBottom)), highlight});
-            int rim = res.getDimensionPixelSize(R.dimen.rim);
-            layers.setLayerInset(1, rim, rim, rim, rim);
-            layers.setLayerInset(2, rim, rim, rim, rim);
-            disc.setBackground(layers);
+            disc.setBackground(Wallpaper.soft() != null ? frosted(context, res, diameter) : glass(context, res));
             disc.setOutlineProvider(CIRCLE);  // the shadow follows this, whatever the glass is made of
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 disc.setOutlineAmbientShadowColor(Look.colour(context, R.attr.shadowAmbient));
@@ -151,6 +146,7 @@ final class Bubble extends FrameLayout {
             glyph.setScaleType(ImageView.ScaleType.FIT_CENTER);
             glyph.setColorFilter(ink, PorterDuff.Mode.SRC_IN);
             glyph.setImageDrawable(art);
+            glyph.setAlpha(tile.enabled ? 1f : DISABLED_ALPHA);     // a mark that does nothing is dimmed, not its name
             disc.addView(glyph, new LayoutParams(size, size, Gravity.CENTER));
         } else {
             glyph = null;
@@ -173,6 +169,37 @@ final class Bubble extends FrameLayout {
             caption = null;
         }
         apply();
+    }
+
+    /** On the flat ground, from the outside in: a rim of light fading down from the top, the glass, and a tone that
+     *  comes up while the disc is selected. */
+    private Drawable glass(Context context, Resources res) {
+        LayerDrawable layers = new LayerDrawable(new Drawable[]{
+                oval(Look.colour(context, R.attr.discRimTop), Look.colour(context, R.attr.discRimBottom)),
+                oval(Look.colour(context, R.attr.discTop), Look.colour(context, R.attr.discBottom)), highlight});
+        int rim = res.getDimensionPixelSize(R.dimen.rim);
+        layers.setLayerInset(1, rim, rim, rim, rim);
+        layers.setLayerInset(2, rim, rim, rim, rim);
+        return layers;
+    }
+
+    /**
+     * Over a wallpaper, liquid glass: a bright rim, the soft picture behind the disc, a tint that is lighter at the top,
+     * and a gloss across the top, so the disc is made of the screen behind it and catches the light.
+     */
+    private Drawable frosted(Context context, Resources res, int diameter) {
+        GradientDrawable gloss = oval(res.getColor(R.color.glass_gloss), res.getColor(R.color.glass_gloss_end));
+        LayerDrawable layers = new LayerDrawable(new Drawable[]{
+                oval(res.getColor(R.color.glass_rim_top), res.getColor(R.color.glass_rim_bottom)),
+                new Frost(Wallpaper.soft(), disc),
+                oval(res.getColor(R.color.glass_tint_top), res.getColor(R.color.glass_tint_bottom)), gloss, highlight});
+        int rim = res.getDimensionPixelSize(R.dimen.rim);
+        int side = Math.round(diameter * GLOSS_SIDE);
+        for (int layer = 1; layer < 5; layer++) {
+            layers.setLayerInset(layer, rim, rim, rim, rim);
+        }
+        layers.setLayerInset(3, side, rim * 2, side, Math.round(diameter * GLOSS_DEPTH));
+        return layers;
     }
 
     private static GradientDrawable oval(int top, int bottom) {

@@ -2,6 +2,15 @@
 <!-- What every screen has: a shelf of discs in the middle, and the date and time above it -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- the wallpaper, if the setting is on, in full -->
+    <ImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -19,6 +28,27 @@
             android:gravity="center"
             android:orientation="vertical" />
     </ScrollView>
+
+    <!-- the line of instructions while the dock is edited, the result of a setting, and the one-time hint -->
+    <TextView
+        android:id="@+id/hint"
+        style="@style/Text.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/hint_top"
+        android:alpha="0" />
+
+    <!-- the photographer of the wallpaper -->
+    <TextView
+        android:id="@+id/credit"
+        style="@style/Text.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="@dimen/margin"
+        android:layout_marginEnd="@dimen/margin"
+        android:visibility="gone" />
 
     <TextClock
         style="@style/Text.Clock"

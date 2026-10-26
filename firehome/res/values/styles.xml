@@ -17,6 +17,7 @@
         <item name="shadowAmbient">@color/shadow_ambient_light</item>
         <item name="shadowSpot">@color/shadow_spot_light</item>
         <item name="ink">@color/ink_light</item>
+        <item name="textShadow">@color/shadow_text_none</item>
         <item name="inkDim">@color/ink_dim_light</item>
     </style>
 
@@ -31,7 +32,24 @@
         <item name="shadowAmbient">@color/shadow_ambient_dark</item>
         <item name="shadowSpot">@color/shadow_spot_dark</item>
         <item name="ink">@color/ink_dark</item>
+        <item name="textShadow">@color/shadow_text_none</item>
         <item name="inkDim">@color/ink_dim_dark</item>
+    </style>
+
+    <!-- With a wallpaper there is one look, not two: white ink and shadowed text over the picture, and glass discs -->
+    <style name="Photo" parent="Base">
+        <item name="android:windowBackground">@color/ground_photo</item>
+        <item name="ground">@color/ground_photo</item>
+        <item name="discTop">@color/glass_tint_top</item>
+        <item name="discBottom">@color/glass_tint_bottom</item>
+        <item name="discRimTop">@color/glass_rim_top</item>
+        <item name="discRimBottom">@color/glass_rim_bottom</item>
+        <item name="discLift">@color/lift_photo</item>
+        <item name="shadowAmbient">@color/shadow_ambient_light</item>
+        <item name="shadowSpot">@color/shadow_spot_light</item>
+        <item name="ink">@color/ink_photo</item>
+        <item name="textShadow">@color/shadow_text_photo</item>
+        <item name="inkDim">@color/ink_dim_photo</item>
     </style>
 
     <!-- Three sizes of type carry the whole interface -->
@@ -40,6 +58,9 @@
         <item name="android:singleLine">true</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textColor">?ink</item>
+        <item name="android:shadowColor">?textShadow</item>
+        <item name="android:shadowRadius">8</item>
+        <item name="android:shadowDy">1</item>
     </style>
 
     <!-- the date and time, on every screen and on the screensaver -->
