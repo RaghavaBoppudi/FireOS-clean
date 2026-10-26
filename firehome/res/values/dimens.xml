@@ -15,20 +15,38 @@
          has the screen. Its corner and the tile's share a centre. It clears the credit line (credit_bottom + a line) -->
     <dimen name="dock_margin">50dp</dimen>
     <dimen name="dock_bottom">32dp</dimen>
-    <dimen name="dock_padding">8dp</dimen>
-    <dimen name="panel_radius">20dp</dimen>
+    <dimen name="dock_padding_v">8dp</dimen>
+    <dimen name="dock_padding_h">14dp</dimen>
+    <!-- half the dock's height (a tile and its padding): the dock is a full pill, and a taller panel keeps its corner -->
+    <dimen name="panel_radius">46dp</dimen>
+    <dimen name="shimmer_width">1.25dp</dimen>
+    <!-- the blur radii of a selected mark's bloom: one that hugs the shape and one that spreads -->
+    <dimen name="bloom_tight">3dp</dimen>
+    <dimen name="bloom_wide">9dp</dimen>
     <dimen name="fade">16dp</dimen>
 
     <!-- Tiles are equal slots with equal gaps -->
     <dimen name="tile_width">112dp</dimen>
     <dimen name="tile_height">76dp</dimen>
     <dimen name="tile_gap">6dp</dimen>
-    <dimen name="tile_radius">12dp</dimen>
     <!-- every mark, whatever it shows, is fitted into this box in the middle of its slot -->
     <dimen name="mark_width">80dp</dimen>
     <dimen name="mark_height">44dp</dimen>
+    <!-- a setting is taller: its glyph, its name and its value -->
+    <dimen name="tile_height_setting">100dp</dimen>
+    <dimen name="setting_glyph">32dp</dimen>
+    <dimen name="setting_top">23dp</dimen>
+    <dimen name="setting_name_gap">8dp</dimen>
 
     <dimen name="caption_gap">12dp</dimen>
+    <dimen name="banner_padding_h">24dp</dimen>
+    <dimen name="banner_height">56dp</dimen>
+    <dimen name="banner_padding_v">12dp</dimen>
+    <dimen name="dash_height">1dp</dimen>
+    <!-- how far the dock shakes when it is asked for more, or less, than it can give -->
+    <dimen name="shake">10dp</dimen>
+    <!-- how far a mark taken off the dock rises above it -->
+    <dimen name="lift">30dp</dimen>
     <dimen name="credit_bottom">14dp</dimen>
     <!-- All apps keeps clear of the top bar: its bottom edge (bar_top + button_size) plus a gap -->
     <dimen name="grid_top">120dp</dimen>
@@ -40,10 +58,13 @@
 
     <!-- Type scale -->
     <dimen name="text_header">22sp</dimen>
+    <!-- the screensaver's clock -->
+    <dimen name="text_saver_time">96sp</dimen>
+    <dimen name="text_saver_date">24sp</dimen>
+    <dimen name="saver_margin">120dp</dimen>
     <dimen name="text_body">18sp</dimen>
     <dimen name="text_secondary">14sp</dimen>
     <dimen name="text_caption">12sp</dimen>
-    <!-- the timer inside the Background tile's frame: a number over its unit -->
-    <dimen name="text_timer">13sp</dimen>
-    <dimen name="text_timer_unit">9sp</dimen>
+    <!-- a setting's name and value sit under a glyph on a TV across a room -->
+    <dimen name="text_tile">13sp</dimen>
 </resources>

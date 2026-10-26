@@ -3,7 +3,11 @@
     <color name="ground">#FF0B0B0C</color>
     <color name="ink">#FFF4F4F2</color>
     <color name="ink_dim">#B3F4F4F2</color>
-    <!-- written on a solid white tile (the Background timer) -->
+    <!-- the same two, for a light wallpaper behind them -->
+    <color name="ink_on_light">#FF141416</color>
+    <color name="ink_dim_on_light">#B3141416</color>
+    <!-- over the screensaver's blurred picture, so it is easy on a dark room -->
+    <color name="saver_veil">#33000000</color>
     <!-- the soft shadow behind a resting top-bar icon -->
     <color name="halo">#33000000</color>
     <color name="halo_edge">#0F000000</color>
@@ -14,5 +18,8 @@
     <color name="scrim">#8C000000</color>
     <!-- over the soft picture on the launch cover: frosted, not black -->
     <color name="launch_veil">#59101216</color>
-    <color name="plate">#33FFFFFF</color>
+    <!-- the dash between the dock and the apps that can be added to it -->
+    <color name="dash">#40FFFFFF</color>
+    <!-- the top-edge shimmer of a frosted panel, at its brightest in the middle -->
+    <color name="shimmer">#A6FFFFFF</color>
 </resources>

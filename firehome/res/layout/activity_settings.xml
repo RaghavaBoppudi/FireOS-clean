@@ -17,6 +17,7 @@
         android:layout_marginTop="@dimen/bar_top" />
 
     <TextView
+        android:id="@+id/title"
         style="@style/Text.Secondary"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/button_size"
@@ -49,26 +50,17 @@
             android:layout_marginEnd="@dimen/dock_margin"
             android:layout_marginStart="@dimen/dock_margin">
 
-            <com.firehome.TileRail
-                android:id="@+id/rail"
+            <LinearLayout
+                android:id="@+id/row"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clipChildren="false"
                 android:clipToPadding="false"
-                android:fadingEdgeLength="@dimen/fade"
-                android:overScrollMode="never"
-                android:requiresFadingEdge="horizontal"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/row"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/dock_padding" />
-            </com.firehome.TileRail>
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/dock_padding_v"
+                android:paddingEnd="@dimen/dock_padding_h"
+                android:paddingStart="@dimen/dock_padding_h"
+                android:paddingTop="@dimen/dock_padding_v" />
         </com.firehome.FrostedPanel>
     </LinearLayout>
 

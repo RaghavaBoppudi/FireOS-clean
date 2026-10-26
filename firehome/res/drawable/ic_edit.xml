@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A solid pencil, upright and then turned a quarter-way round; drawn for this project (CC0, see NOTICE.md). It is as
+     heavy as the other glyphs along the top bar, which a thin one would not be. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="960" android:viewportHeight="960">
+    <group android:pivotX="480" android:pivotY="480" android:rotation="45">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M350,50L610,50L610,200L350,200ZM350,260L610,260L610,660L480,900L350,660Z" />
+    </group>
+</vector>

@@ -45,7 +45,12 @@ final class AppCatalog {
 
     /** The apps, the one used last first; the Appstore is left to the full list. */
     List<Tile> byRecency() {
-        List<Tile> apps = launchable(false);
+        return byRecency(false);
+    }
+
+    /** The apps, the one used last first. */
+    List<Tile> byRecency(boolean withAppstore) {
+        List<Tile> apps = launchable(withAppstore);
         final Map<String, Long> lastUsed = recents.lastUsed();
         Collections.sort(apps, new Comparator<Tile>() {
             @Override

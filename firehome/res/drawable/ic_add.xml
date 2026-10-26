@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A solid plus; drawn for this project (CC0, see NOTICE.md) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="960" android:viewportHeight="960">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M400,160L560,160L560,400L800,400L800,560L560,560L560,800L400,800L400,560L160,560L160,400L400,400Z" />
+</vector>

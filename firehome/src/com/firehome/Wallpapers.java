@@ -79,12 +79,16 @@ final class Wallpapers {
         final Photo photo;
         final Bitmap image;
         final Bitmap blur;
+        final float dateLight;    // 0 black to 1 white: how light the picture is behind the date...
+        final float buttonLight;  // ...and behind the buttons and the name of the screen
         private BitmapShader blurShader;
 
         Frame(Photo photo, Bitmap image, Bitmap blur) {
             this.photo = photo;
             this.image = image;
             this.blur = blur;
+            dateLight = lightOf(image, 0.03f, 0.42f, 0f, TOP_STRIP);
+            buttonLight = lightOf(image, 0.70f, 0.97f, 0f, TOP_STRIP);
         }
 
         BitmapShader blurShader() {
@@ -93,6 +97,37 @@ final class Wallpapers {
             }
             return blurShader;
         }
+    }
+
+    /** The share of a picture's height, from the top, that the date and buttons sit on. */
+    static final float TOP_STRIP = 0.16f;
+
+    /** The average lightness of the whole of a picture; sampled, not read whole. */
+    static float lightOf(Bitmap bitmap) {
+        return lightOf(bitmap, 0f, 1f, 0f, 1f);
+    }
+
+    /**
+     * The average lightness of a part of a picture, between these shares of its width and of its height; sampled, not
+     * read whole.
+     */
+    static float lightOf(Bitmap bitmap, float left, float right, float from, float to) {
+        int top = (int) (bitmap.getHeight() * from);
+        int bottom = Math.max(top + 1, (int) (bitmap.getHeight() * to));
+        int startX = (int) (bitmap.getWidth() * left);
+        int endX = Math.max(startX + 1, (int) (bitmap.getWidth() * right));
+        int stepX = Math.max(1, (endX - startX) / 32);
+        int stepY = Math.max(1, (bottom - top) / 16);
+        float sum = 0f;
+        int count = 0;
+        for (int y = top; y < bottom; y += stepY) {
+            for (int x = startX; x < endX; x += stepX) {
+                int pixel = bitmap.getPixel(x, y);
+                sum += (0.2126f * ((pixel >> 16) & 0xFF) + 0.7152f * ((pixel >> 8) & 0xFF) + 0.0722f * (pixel & 0xFF)) / 255f;
+                count++;
+            }
+        }
+        return count == 0 ? 0f : sum / count;
     }
 
     interface Callback {
@@ -160,7 +195,7 @@ final class Wallpapers {
         try {
             JSONArray list = new JSONArray(read(DIRECTORY + "/index.json"));
             for (int i = 0; i < list.length(); i++) {
-                bundled.add(new Photo(list.getString(i), null, null));   // the bundled gradients need no credit
+                bundled.add(new Photo(list.getString(i), null, null));   // the built-in wallpapers need no credit
             }
         } catch (IOException | JSONException e) {
             bundled.clear();   // no wallpapers: screens stay on the plain background
@@ -223,9 +258,9 @@ final class Wallpapers {
         return 0;
     }
 
-    /** The interval in a few characters, for a tile. */
-    String intervalBadge() {
-        return context.getResources().getStringArray(R.array.interval_badges)[interval()];
+    /** The interval in words, for the caption under its setting. */
+    String intervalCaption() {
+        return context.getResources().getStringArray(R.array.interval_captions)[interval()];
     }
 
     /** Moves to the next interval in the list; after the longest it wraps round to the shortest. */

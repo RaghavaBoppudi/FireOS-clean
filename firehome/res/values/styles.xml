@@ -37,16 +37,30 @@
         <item name="android:textColor">@color/ink</item>
     </style>
 
-    <style name="Text.Timer">
-        <item name="android:textSize">@dimen/text_timer</item>
-        <item name="android:textColor">@color/ground</item>
+    <style name="Text.TileName">
+        <item name="android:textSize">@dimen/text_tile</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textColor">@color/ink</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
-    <style name="Text.TimerUnit">
-        <item name="android:textSize">@dimen/text_timer_unit</item>
-        <item name="android:textColor">@color/ground_dim</item>
+    <style name="Text.TileCaption">
+        <item name="android:textSize">@dimen/text_tile</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textColor">@color/ink_dim</item>
+    </style>
+
+    <style name="Text.SaverTime" parent="Text">
+        <item name="android:textSize">@dimen/text_saver_time</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="Text.SaverDate" parent="Text">
+        <item name="android:textSize">@dimen/text_saver_date</item>
+        <item name="android:textColor">@color/ink_dim</item>
     </style>
 
     <style name="Text.Launching" parent="Text.OnPhoto">
@@ -56,6 +70,7 @@
 
     <style name="Text.Credit" parent="Text.OnPhoto">
         <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:letterSpacing">0.02</item>
         <item name="android:textColor">@color/ink_dim</item>
     </style>
 </resources>
