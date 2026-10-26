@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- All apps and Settings: the shelf and the clock, nothing else -->
+<!-- All apps and Settings: the shelf, and the name of the screen at the top left -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?ground"
     android:clipChildren="false">
 
     <include layout="@layout/screen" />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Text.Clock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginTop="@dimen/clock_top" />
 </FrameLayout>

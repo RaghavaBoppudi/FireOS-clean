@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- remembers which ink a text was last given over a wallpaper (see Ink) -->
+    <item type="id" name="ink_tone" />
+</resources>

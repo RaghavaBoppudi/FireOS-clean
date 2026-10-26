@@ -2,26 +2,67 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?ground"
     android:clipChildren="false">
 
     <include layout="@layout/screen" />
 
-    <!-- all apps, edit and settings, along the bottom edge -->
+    <!-- the date and time: on Home alone -->
+    <TextClock
+        android:id="@+id/clock"
+        style="@style/Text.Clock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginTop="@dimen/clock_top"
+        android:format12Hour="EEEE d MMMM  |  HH:mm"
+        android:format24Hour="EEEE d MMMM  |  HH:mm" />
+
+    <!-- the greeting at the bottom left: a picture and a line, which the line of instructions takes the place of -->
+    <LinearLayout
+        android:id="@+id/profile"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/avatar"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginBottom="@dimen/buttons_bottom"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/avatar"
+            android:layout_width="@dimen/avatar"
+            android:layout_height="@dimen/avatar"
+            android:layout_marginEnd="@dimen/avatar_gap"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/greeting"
+            style="@style/Text.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- apps, edit and settings, at the bottom right -->
     <LinearLayout
         android:id="@+id/buttons"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_height="@dimen/avatar"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/margin"
         android:layout_marginBottom="@dimen/buttons_bottom"
         android:clipChildren="false"
+        android:gravity="center_vertical"
         android:orientation="horizontal" />
 
-    <!-- the screensaver: nothing but the time and date, which move -->
+    <!-- the screensaver: nothing but the time and date, which move, in white on black whatever the look -->
     <FrameLayout
         android:id="@+id/screensaver"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?ground"
+        android:background="@color/ground_saver"
         android:visibility="gone">
 
         <TextClock
@@ -29,6 +70,8 @@
             style="@style/Text.Clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:shadowColor="@color/shadow_text_none"
+            android:textColor="@color/ink_dark"
             android:format12Hour="EEEE d MMMM  |  HH:mm"
             android:format24Hour="EEEE d MMMM  |  HH:mm" />
     </FrameLayout>

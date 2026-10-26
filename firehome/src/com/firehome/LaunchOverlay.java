@@ -8,10 +8,12 @@ import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 /**
  * Covers Amazon's home for the moment between Amazon's home starting and HomeActivity being on screen, so Amazon's
- * home is never seen: the ground of the home, with a spinner and "Launching Home" in the middle. It is drawn over
+ * home is never seen: black at once, then the ground of the home (its wallpaper, if it has one) fading up over the
+ * black, with a spinner and "Launching Home" in the middle. It is drawn over
  * other apps, which install.sh
  * allows with `appops set ... SYSTEM_ALERT_WINDOW allow`; without that it simply does not appear. All calls
  * come on the main thread.
@@ -67,6 +69,11 @@ final class LaunchOverlay {
             }
             view = created;
             shownAt = SystemClock.elapsedRealtime();
+            // black until the ground fades up over it, whatever Amazon's home was showing
+            ImageView cover = (ImageView) created.findViewById(R.id.cover);
+            cover.setImageBitmap(Wallpaper.sharp());      // none, if no wallpaper has been loaded or it is off
+            cover.setAlpha(0f);
+            cover.animate().alpha(1f).setDuration(context.getResources().getInteger(R.integer.fade_in_ms));
         }
         handler.postDelayed(hide, timeoutMs);   // only a safety net, long enough to outlast Android swapping homes
     }

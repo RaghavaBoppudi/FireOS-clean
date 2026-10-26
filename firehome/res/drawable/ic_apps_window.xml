@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A window with a title bar: a solid frame round a hollow pane, so Settings > Apps is not the grid of All apps. Drawn
+     for this project (CC0, see NOTICE.md). The pane winds the opposite way to the frame, which is what leaves it empty. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="960" android:viewportHeight="960">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M120,200L840,200L840,760L120,760ZM200,360L200,680L760,680L760,360Z" />
+</vector>

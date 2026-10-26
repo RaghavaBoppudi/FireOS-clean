@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A clock face: a ring with two hands, for how often the wallpaper changes. Drawn for this project (CC0, see
+     NOTICE.md). The hole winds the opposite way to the ring, which is what leaves it empty. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="960" android:viewportHeight="960">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M480,130a350,350 0 1 1 0,700a350,350 0 1 1 0,-700ZM480,210a270,270 0 1 0 0,540a270,270 0 1 0 0,-540ZM450,290L510,290L510,450L650,450L650,510L450,510Z" />
+</vector>

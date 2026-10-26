@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Each look's window is its ground colour from the first frame, with no transition of its own, so opening the
-         home never flashes or slides in -->
+    <!-- Every look's window is black from the first frame, with no transition of its own, and the screen comes up out of
+         the black (see HomeActivity), so opening the home never flashes light or slides in -->
     <style name="Base" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/window_black</item>
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
     <style name="Light" parent="Base">
-        <item name="android:windowBackground">@color/ground_light</item>
         <item name="ground">@color/ground_light</item>
         <item name="discTop">@color/disc_top_light</item>
         <item name="discBottom">@color/disc_bottom_light</item>
@@ -22,7 +22,6 @@
     </style>
 
     <style name="Dark" parent="Base">
-        <item name="android:windowBackground">@color/ground_dark</item>
         <item name="ground">@color/ground_dark</item>
         <item name="discTop">@color/disc_top_dark</item>
         <item name="discBottom">@color/disc_bottom_dark</item>
@@ -36,17 +35,12 @@
         <item name="inkDim">@color/ink_dim_dark</item>
     </style>
 
-    <!-- With a wallpaper there is one look, not two: white ink and shadowed text over the picture, and glass discs -->
+    <!-- With a wallpaper there is one look, not two: white ink and shadowed text over the picture, and flat discs of frosted glass, with no shadow -->
     <style name="Photo" parent="Base">
-        <item name="android:windowBackground">@color/ground_photo</item>
         <item name="ground">@color/ground_photo</item>
-        <item name="discTop">@color/glass_tint_top</item>
-        <item name="discBottom">@color/glass_tint_bottom</item>
-        <item name="discRimTop">@color/glass_rim_top</item>
-        <item name="discRimBottom">@color/glass_rim_bottom</item>
         <item name="discLift">@color/lift_photo</item>
-        <item name="shadowAmbient">@color/shadow_ambient_light</item>
-        <item name="shadowSpot">@color/shadow_spot_light</item>
+        <item name="shadowAmbient">@color/shadow_none</item>
+        <item name="shadowSpot">@color/shadow_none</item>
         <item name="ink">@color/ink_photo</item>
         <item name="textShadow">@color/shadow_text_photo</item>
         <item name="inkDim">@color/ink_dim_photo</item>
@@ -63,7 +57,7 @@
         <item name="android:shadowDy">1</item>
     </style>
 
-    <!-- the date and time, on every screen and on the screensaver -->
+    <!-- the date and time at the top left of Home and on the screensaver, and the name of a screen in its place -->
     <style name="Text.Clock">
         <item name="android:textSize">@dimen/text_clock</item>
         <item name="android:fontFamily">sans-serif-medium</item>

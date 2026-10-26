@@ -5,4 +5,7 @@
          bundled in the app are used. See "Your own wallpapers" in the README. -->
     <string name="wallpaper_repo" translatable="false"></string>
     <string name="wallpaper_path" translatable="false"></string>
+    <!-- The name in the greeting at the bottom left of the home ("Hello, NAME"); blank hides the greeting. The picture
+         beside it is profile.jpg in the wallpaper repository. -->
+    <string name="profile_name" translatable="false"></string>
 </resources>

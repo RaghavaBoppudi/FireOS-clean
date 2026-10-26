@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A head and shoulders. Drawn for this project (CC0, see NOTICE.md). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="960" android:viewportHeight="960">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M480,170a160,160 0 1 1 0,320a160,160 0 1 1 0,-320ZM170,800C170,650 310,570 480,570C650,570 790,650 790,800Z" />
+</vector>

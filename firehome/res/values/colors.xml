@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="window_black">#FF000000</color>
     <!-- Light, the default: an off-white screen, discs of white glass, near-black ink, soft shadows -->
     <color name="ground_light">#FFF5F5F3</color>
     <color name="disc_top_light">#FFFFFFFF</color>
@@ -30,12 +31,9 @@
     <color name="ink_dim_photo">#B3FFFFFF</color>
     <color name="shadow_text_photo">#99000000</color>
     <color name="shadow_text_none">#00000000</color>
-    <!-- The liquid glass of a disc over a wallpaper: a rim that is bright at the top, a tint that is lighter there too,
-         and a gloss, over the soft picture -->
-    <color name="glass_rim_top">#B3FFFFFF</color>
-    <color name="glass_rim_bottom">#33FFFFFF</color>
-    <color name="glass_tint_top">#38FFFFFF</color>
-    <color name="glass_tint_bottom">#0FFFFFFF</color>
-    <color name="glass_gloss">#4DFFFFFF</color>
-    <color name="glass_gloss_end">#00FFFFFF</color>
+    <!-- The glass of a disc over a wallpaper is flat: the soft picture behind it, under one even veil of white, and no shadow -->
+    <color name="glass_veil">#26FFFFFF</color>
+    <color name="shadow_none">#00000000</color>
+    <!-- the screensaver is black on every look: a lit screen left on for a while glares, and holds an image -->
+    <color name="ground_saver">#FF050506</color>
 </resources>

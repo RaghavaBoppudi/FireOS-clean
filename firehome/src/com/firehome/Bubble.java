@@ -3,20 +3,17 @@ package com.firehome;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Outline;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.LayerDrawable;
-import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Property;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
-import android.view.ViewOutlineProvider;
 import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -26,8 +23,8 @@ import android.widget.TextView;
 import java.util.Random;
 
 /**
- * A disc of frosted glass with a mark in it and its name under it: the one control of the home. (The buttons at the
- * bottom are the mark alone, with no disc.) Selecting it grows the disc, lifts its shadow and fades its name (and, for
+ * A disc of frosted glass with a mark in it and its name under it: the one control of the shelf. (The buttons at the
+ * bottom are Shortcuts.) Selecting it grows the disc, lifts its shadow and fades its name (and, for
  * a setting, its value) in. Editing the dock can also pick it up (raised 1) and take it off the dock (raised 2). Two
  * animated values, {@code selected} and {@code raised}, drive everything that changes, so its parts cannot fall out
  * of step.
@@ -43,20 +40,15 @@ final class Bubble extends FrameLayout {
     private static final float RAISE_GROWTH = 0.15f;      // and each step of being raised makes it this much larger
     private static final float MARK_SHARE = 0.54f;        // the mark's share of the disc's width
     private static final float WIDE_SHARE = 0.72f;
-    private static final float GLOSS_SIDE = 0.14f;    // the gloss across the top of a glass disc, as shares of its width
-    private static final float GLOSS_DEPTH = 0.5f;    // and of its height left clear below the gloss
+    private static final float INK_SHARE = 0.16f;         // the share of the disc's area that a logo's ink covers, whatever its shape
+    private static final float LOGO_REACH = 0.88f;        // and the most of the disc's width that a logo's corners may reach
+    private static final int INK_ALPHA = 64;
+    private static final int SAMPLE = 64;                 // a logo is drawn this wide, to see how much of its box is ink
     private static final float DISABLED_ALPHA = 0.4f;
     private static final float LETTER_SHARE = 0.4f;
     private static final float JIGGLE_DEGREES = 1.8f;
     private static final long JIGGLE_MS = 120;
     private static final Random RANDOM = new Random();
-
-    private static final ViewOutlineProvider CIRCLE = new ViewOutlineProvider() {
-        @Override
-        public void getOutline(View view, Outline outline) {
-            outline.setOval(0, 0, view.getWidth(), view.getHeight());
-        }
-    };
 
     private static final Property<Bubble, Float> SELECTED = new Property<Bubble, Float>(Float.class, "selected") {
         @Override
@@ -86,7 +78,7 @@ final class Bubble extends FrameLayout {
 
     private final FrameLayout disc;
     private final ImageView glyph;      // null for an app that has no mark: a letter stands in
-    private final GradientDrawable highlight;   // null for a bare mark
+    private final GradientDrawable highlight;   // the tone that comes up over the disc while it is selected
     private final TextView name;
     private final TextView caption;     // null unless the tile has a value
     private final int diameter;
@@ -100,8 +92,8 @@ final class Bubble extends FrameLayout {
     private float selected;
     private float raised;
 
-    /** A disc of frosted glass with the tile's mark in it; or, if {@code bare}, the mark alone, {@code diameter} wide. */
-    Bubble(Context context, Tile tile, int diameter, boolean bare) {
+    /** A disc of frosted glass, {@code diameter} wide, with the tile's mark in it. */
+    Bubble(Context context, Tile tile, int diameter) {
         super(context);
         this.diameter = diameter;
         Resources res = getResources();
@@ -122,26 +114,14 @@ final class Bubble extends FrameLayout {
         addView(column, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
         disc = new FrameLayout(context);
-        if (!bare) {
-            highlight = oval(Look.colour(context, R.attr.discLift), Look.colour(context, R.attr.discLift));
-            disc.setBackground(Wallpaper.soft() != null ? frosted(context, res, diameter) : glass(context, res));
-            disc.setOutlineProvider(CIRCLE);  // the shadow follows this, whatever the glass is made of
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                disc.setOutlineAmbientShadowColor(Look.colour(context, R.attr.shadowAmbient));
-                disc.setOutlineSpotShadowColor(Look.colour(context, R.attr.shadowSpot));
-            }
-        } else {
-            highlight = null;
-        }
+        highlight = Glass.lift(context);
+        Glass.shape(context, disc, highlight);
         column.addView(disc, new LinearLayout.LayoutParams(diameter, diameter));
 
         int ink = Look.colour(context, R.attr.ink);
         if (tile.icon != null) {
             Drawable art = Tile.copy(tile.icon);
-            // a long, low mark (a swoosh) is given more of the disc's width, or it would be a sliver
-            float aspect = art.getIntrinsicWidth() / (float) Math.max(1, art.getIntrinsicHeight());
-            float share = MARK_SHARE + (WIDE_SHARE - MARK_SHARE) * Math.min(1f, Math.max(0f, (aspect - 2f) / 2f));
-            int size = bare ? diameter : Math.round(diameter * share);
+            int size = markSize(art, diameter);
             glyph = new ImageView(context);
             glyph.setScaleType(ImageView.ScaleType.FIT_CENTER);
             glyph.setColorFilter(ink, PorterDuff.Mode.SRC_IN);
@@ -171,41 +151,51 @@ final class Bubble extends FrameLayout {
         apply();
     }
 
-    /** On the flat ground, from the outside in: a rim of light fading down from the top, the glass, and a tone that
-     *  comes up while the disc is selected. */
-    private Drawable glass(Context context, Resources res) {
-        LayerDrawable layers = new LayerDrawable(new Drawable[]{
-                oval(Look.colour(context, R.attr.discRimTop), Look.colour(context, R.attr.discRimBottom)),
-                oval(Look.colour(context, R.attr.discTop), Look.colour(context, R.attr.discBottom)), highlight});
-        int rim = res.getDimensionPixelSize(R.dimen.rim);
-        layers.setLayerInset(1, rim, rim, rim, rim);
-        layers.setLayerInset(2, rim, rim, rim, rim);
-        return layers;
-    }
-
     /**
-     * Over a wallpaper, liquid glass: a bright rim, the soft picture behind the disc, a tint that is lighter at the top,
-     * and a gloss across the top, so the disc is made of the screen behind it and catches the light.
+     * The width of the box a mark is drawn in. Every mark, an app's logo or a setting's glyph, is sized by its ink: the
+     * same area of the disc whether it is a solid block, a thin curve or a ring, so that none looks heavier or smaller
+     * than the others, and not so large that its corners leave the disc. (One with no ink to measure gets a fixed share
+     * of the width, more if it is long and low, or it would be a sliver.)
      */
-    private Drawable frosted(Context context, Resources res, int diameter) {
-        GradientDrawable gloss = oval(res.getColor(R.color.glass_gloss), res.getColor(R.color.glass_gloss_end));
-        LayerDrawable layers = new LayerDrawable(new Drawable[]{
-                oval(res.getColor(R.color.glass_rim_top), res.getColor(R.color.glass_rim_bottom)),
-                new Frost(Wallpaper.soft(), disc),
-                oval(res.getColor(R.color.glass_tint_top), res.getColor(R.color.glass_tint_bottom)), gloss, highlight});
-        int rim = res.getDimensionPixelSize(R.dimen.rim);
-        int side = Math.round(diameter * GLOSS_SIDE);
-        for (int layer = 1; layer < 5; layer++) {
-            layers.setLayerInset(layer, rim, rim, rim, rim);
+    private static int markSize(Drawable art, int diameter) {
+        int width = art.getIntrinsicWidth();
+        int height = art.getIntrinsicHeight();
+        float aspect = width / (float) Math.max(1, height);
+        float share = MARK_SHARE + (WIDE_SHARE - MARK_SHARE) * Math.min(1f, Math.max(0f, (aspect - 2f) / 2f));
+        if (width <= 0 || height <= 0) {
+            return Math.round(diameter * share);
         }
-        layers.setLayerInset(3, side, rim * 2, side, Math.round(diameter * GLOSS_DEPTH));
-        return layers;
-    }
-
-    private static GradientDrawable oval(int top, int bottom) {
-        GradientDrawable shape = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{top, bottom});
-        shape.setShape(GradientDrawable.OVAL);
-        return shape;
+        int w = aspect >= 1f ? SAMPLE : Math.max(1, Math.round(SAMPLE * aspect));
+        int h = aspect >= 1f ? Math.max(1, Math.round(SAMPLE / aspect)) : SAMPLE;
+        Bitmap sample = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        art.setBounds(0, 0, w, h);
+        art.draw(new Canvas(sample));
+        int[] pixels = new int[w * h];
+        sample.getPixels(pixels, 0, w, 0, 0, w, h);
+        sample.recycle();
+        int ink = 0;
+        int left = w;
+        int right = -1;
+        int top = h;
+        int bottom = -1;
+        for (int i = 0; i < pixels.length; i++) {
+            if ((pixels[i] >>> 24) > INK_ALPHA) {
+                ink++;
+                left = Math.min(left, i % w);
+                right = Math.max(right, i % w);
+                top = Math.min(top, i / w);
+                bottom = Math.max(bottom, i / w);
+            }
+        }
+        if (ink == 0) {
+            return Math.round(diameter * share);
+        }
+        float scale = (float) Math.sqrt(INK_SHARE / ink);         // the disc's widths in one sample pixel
+        float reach = (float) Math.hypot(right - left + 1, bottom - top + 1) * scale;
+        if (reach > LOGO_REACH) {
+            scale *= LOGO_REACH / reach;
+        }
+        return Math.round(diameter * scale * Math.max(w, h));
     }
 
     private static TextView line(Context context, int style, String text) {
@@ -216,6 +206,11 @@ final class Bubble extends FrameLayout {
         line.setGravity(Gravity.CENTER_HORIZONTAL);
         line.setText(text);
         return line;
+    }
+
+    /** The picture behind the disc has changed: draw its glass again. */
+    void repaintGlass() {
+        disc.invalidate();
     }
 
     /** Changes the value shown under a setting's name. */
@@ -295,9 +290,7 @@ final class Bubble extends FrameLayout {
     private void apply() {
         float scale = (1f + GROWTH * selected) * (1f + RAISE_GROWTH * raised);
         float away = Math.max(raised - 1f, 0f);
-        if (highlight != null) {
-            highlight.setAlpha(Math.round(255 * selected));
-        }
+        highlight.setAlpha(Math.round(255 * selected));
         disc.setScaleX(scale);
         disc.setScaleY(scale);
         disc.setTranslationY(-lift * away);

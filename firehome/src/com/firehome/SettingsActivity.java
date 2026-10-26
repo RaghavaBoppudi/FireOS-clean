@@ -1,22 +1,28 @@
 package com.firehome;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.graphics.drawable.Drawable;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.view.WindowManager;
+import android.widget.EditText;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Settings as a row of discs, each with its name under it. Display & Sounds is left out: Amazon locks it to its own
+ * Settings as rows of discs (six to a row), each with its name under it. Display & Sounds is left out: Amazon locks it to its own
  * launcher with a signature permission, so no other app can open it. The system's own entry point
  * (Settings.ACTION_SETTINGS) goes through Amazon's launcher, so this opens the pages Amazon's Settings grid links to
- * straight from the Settings app instead. The last five are this app's own: the wallpaper, fetching new ones, the
- * theme (which a wallpaper takes over), the order of the dock and the screensaver, each showing its choice under its
- * name. Back returns to the home screen.
+ * straight from the Settings app instead. The last seven are this app's own: the wallpaper, fetching new ones, how often it changes, the
+ * theme (which a wallpaper takes over), the order of the dock, the screensaver and the greeting, each showing its choice
+ * under its name. Back returns to the home screen.
  */
 public class SettingsActivity extends HomeActivity {
     private static final int[] LABELS = {
@@ -25,7 +31,7 @@ public class SettingsActivity extends HomeActivity {
     };
     private static final int[] ICONS = {
             R.drawable.ic_network_4, R.drawable.ic_controllers,
-            R.drawable.ic_applications, R.drawable.ic_device,
+            R.drawable.ic_apps_window, R.drawable.ic_device,
     };
     private static final String[] ACTIONS = {
             "android.settings.WIFI_SETTINGS", "android.settings.CONTROLLERS_SETTINGS",
@@ -35,6 +41,7 @@ public class SettingsActivity extends HomeActivity {
     private static final int NETWORK = 0;   // the first page: its glyph shows the signal
 
     private Tile network;
+    private Tile greeting;
     private int shownLevel = -1;
 
     // the signal changes while this screen is up: redraw the glyph when its level does
@@ -70,8 +77,18 @@ public class SettingsActivity extends HomeActivity {
     }
 
     @Override
+    protected int titleRes() {
+        return R.string.settings;
+    }
+
+    @Override
     protected int layout() {
         return R.layout.activity_plain;
+    }
+
+    @Override
+    protected boolean grid() {
+        return true;      // more than a row's worth: the rest go on a second row, not into one long one
     }
 
     @Override
@@ -113,6 +130,16 @@ public class SettingsActivity extends HomeActivity {
                     }
                 });
         tiles.add(Look.wallpaper(this) ? refresh : refresh.disabled(getString(R.string.wallpaper_off)));
+        Tile shuffle = Tile.setting("shuffle", getString(R.string.settings_shuffle),
+                getResources().getDrawable(R.drawable.ic_shuffle), Wallpaper.shuffleCaption(this), new Tile.Action() {
+                    @Override
+                    public String run() {
+                        Wallpaper.nextShuffle(SettingsActivity.this);
+                        shuffleNow();
+                        return Wallpaper.shuffleCaption(SettingsActivity.this);
+                    }
+                });
+        tiles.add(Look.wallpaper(this) ? shuffle : shuffle.disabled(getString(R.string.wallpaper_off)));
         Tile theme = Tile.setting("theme", getString(R.string.settings_theme),
                 getResources().getDrawable(R.drawable.ic_theme), themeCaption(), new Tile.Action() {
                     @Override
@@ -141,7 +168,60 @@ public class SettingsActivity extends HomeActivity {
                         return Screensaver.caption(SettingsActivity.this);
                     }
                 }));
+        greeting = Tile.setting("greeting", getString(R.string.settings_greeting),
+                getResources().getDrawable(R.drawable.ic_greeting), greetingCaption(), new Tile.Action() {
+                    @Override
+                    public String run() {
+                        askGreeting();
+                        return null;
+                    }
+                });
+        tiles.add(greeting);
         return tiles;
+    }
+
+    /** Asks for the words at the bottom left, with the remote's keyboard; the tile shows them when they are saved. */
+    private void askGreeting() {
+        final EditText field = new EditText(this);
+        field.setInputType(InputType.TYPE_CLASS_TEXT);
+        field.setSingleLine(true);
+        field.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Profile.maxLength())});
+        field.setHint(R.string.greeting_hint);
+        field.setText(Profile.greeting(this));
+        field.setSelection(field.getText().length());
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.settings_greeting)
+                .setView(field)
+                .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Profile.setGreeting(SettingsActivity.this, field.getText().toString());
+                        showGreeting();
+                    }
+                })
+                .setNeutralButton(R.string.greeting_reset, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Profile.setGreeting(SettingsActivity.this, null);
+                        showGreeting();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .create();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        dialog.show();
+    }
+
+    private void showGreeting() {
+        Bubble view = viewOf(greeting);
+        if (view != null) {
+            view.setCaption(greetingCaption());
+        }
+    }
+
+    private String greetingCaption() {
+        String words = Profile.greeting(this);
+        return words.isEmpty() ? getString(R.string.greeting_none) : words;
     }
 
     private String refreshResult(RemoteWallpapers.Outcome outcome, int count) {

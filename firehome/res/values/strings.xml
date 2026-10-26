@@ -4,6 +4,15 @@
     <string name="launching">Launching Home</string>
     <string name="appstore">Appstore</string>
     <string name="settings">Settings</string>
+    <!-- the name of the All apps screen, written at its top left; the longer name above is what the button says -->
+    <string name="title_apps">Apps</string>
+    <string name="greeting">Hello, %1$s</string>
+    <string name="settings_greeting">Greeting</string>
+    <string name="greeting_none">None</string>
+    <string name="greeting_hint">Words at the bottom left</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="greeting_reset">Reset</string>
     <string name="all_apps">All apps</string>
     <string name="edit_dock">Edit dock</string>
     <string name="add_app">Add an app</string>
@@ -14,7 +23,6 @@
     <string name="edit_adding">OK adds an app to the dock. Back to finish.</string>
     <string name="edit_adding_none">Every app is on the dock already.</string>
     <string name="edit_last">Can\'t remove the only app on the dock</string>
-    <string name="edit_full">The dock is full: 6 apps is the most</string>
     <string name="settings_network">Network</string>
     <string name="settings_controllers">Controllers</string>
     <string name="settings_applications">Apps</string>
@@ -24,6 +32,17 @@
     <string name="order_alphabetical">A to Z</string>
     <string name="settings_wallpaper">Wallpaper</string>
     <string name="settings_refresh">Refresh</string>
+    <string name="settings_shuffle">Shuffle</string>
+    <!-- under the Shuffle setting; same order as shuffle_seconds in integers.xml -->
+    <string-array name="shuffle_captions">
+        <item>Every 30 sec</item>
+        <item>Every minute</item>
+        <item>Every 5 min</item>
+        <item>Every 15 min</item>
+        <item>Every 30 min</item>
+        <item>Every hour</item>
+        <item>Daily at midnight</item>
+    </string-array>
     <string name="wallpapers_checking">Checking GitHub…</string>
     <string name="wallpapers_not_set">No wallpaper repository is set: using the built-in wallpapers</string>
     <string name="wallpapers_current">Wallpapers are up to date</string>

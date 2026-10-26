@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="select_ms">220</integer>
-    <integer name="grid_columns">8</integer>
+    <integer name="grid_columns">6</integer>
     <integer name="overlay_min_ms">350</integer>
     <integer name="overlay_settle_ms">300</integer>
     <integer name="overlay_fade_ms">200</integer>
@@ -18,5 +18,21 @@
     <integer name="screensaver_default_index">2</integer>
     <integer name="screensaver_move_ms">10000</integer>
     <integer name="screensaver_glide_ms">1600</integer>
+    <integer name="screensaver_wake_ms">400</integer>
     <integer name="hint_ms">8000</integer>
+    <!-- how long each wallpaper is shown, in seconds (86400 is a day, its turn starting at local midnight); same order as
+         shuffle_captions in strings.xml -->
+    <integer-array name="shuffle_seconds">
+        <item>30</item>
+        <item>60</item>
+        <item>300</item>
+        <item>900</item>
+        <item>1800</item>
+        <item>3600</item>
+        <item>86400</item>
+    </integer-array>
+    <integer name="shuffle_default_index">4</integer>
+    <!-- a screen comes up out of black over this long, and a wallpaper gives way to the next over this long -->
+    <integer name="fade_in_ms">350</integer>
+    <integer name="wallpaper_fade_ms">1200</integer>
 </resources>

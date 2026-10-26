@@ -24,12 +24,12 @@ wallpapers you keep in a GitHub repository, with the discs as liquid glass.
 
 ## What you get
 
-- **A quiet screen.** Up to six apps as discs of glass in the middle, the name of the selected one fading in under it. Every other screen uses the same discs.
-- **Your own wallpapers.** Switch **Settings > Wallpaper** on and the home shows full-screen photographs from a GitHub repository of yours (public or private), changing every half hour, with a credit for the photographer. The discs become liquid glass: the wallpaper, softly blurred, behind a bright rim and a gloss. With none of yours, it uses nine built-in dunes. See [Your own wallpapers](#your-own-wallpapers).
-- **Apps you choose.** Up to six on the dock, picked with the pencil at the bottom (see [Make the dock yours](#make-the-dock-yours)). Well-known apps show their own mark; any other has its mark cut from its icon (an app that is only a name shows its first letter), so apps you install later fit in automatically. Every other app, the Appstore included, is under the all apps button.
-- **Light and dark.** With the wallpaper off, **Settings > Theme** switches between a light and a dark ground. The dark look is tonal glass: graphite discs a shade lighter than the screen, with a rim of light and a soft glow. A wallpaper brings its own look (white text over the picture), so the theme is dimmed while it is on.
-- **A screensaver that is only the time.** After a few idle minutes the screen is bare, with the date and time drifting across it so no pixel is held in place. Any button wakes it.
-- **Settings in the same style.** Network, Controllers, Apps, My Fire TV, the theme, the dock order and the screensaver delay. Each shows its name, and the ones you change show their current value.
+- **A quiet screen.** Up to six apps as discs of glass in the middle, the name of the selected one fading in under it, the date and time at the top left, a greeting (with your picture, if you add one) at the bottom left, and Apps, Edit and Settings at the bottom right. Every other screen uses the same discs, with its name where the clock is.
+- **Your own wallpapers.** Switch **Settings > Wallpaper** on and the home shows full-screen photographs from a GitHub repository of yours (public or private), shown in order of their file names and changing as often as you choose under **Settings > Shuffle** (every 30 seconds up to hourly, or daily at midnight; every 30 minutes by default), with a credit for the photographer. The discs become flat frosted glass: the wallpaper, softly blurred, under a light veil. With none of yours, it uses nine built-in dunes. See [Your own wallpapers](#your-own-wallpapers).
+- **Apps you choose.** Up to six on the dock, picked with Edit at the bottom right (see [Make the dock yours](#make-the-dock-yours)). Well-known apps show their own mark; any other has its mark cut from its icon (an app that is only a name shows its first letter), so apps you install later fit in automatically. Every other app, the Appstore included, is under Apps.
+- **Light and dark.** With the wallpaper off, **Settings > Theme** switches between a light and a dark ground. The dark look is tonal glass: graphite discs a shade lighter than the screen, with a rim of light and a soft glow. A wallpaper brings its own look (text and marks turn dark or white to suit the part of the picture behind them), so the theme is dimmed while it is on.
+- **A screensaver that is only the time.** After a few idle minutes the screen goes black, with the date and time drifting across it so no pixel is held in place. Any button wakes it.
+- **Settings in the same style.** Network, Controllers, Apps, My Fire TV, the wallpaper, how often it changes, the theme, the dock order, the screensaver delay and your greeting. Each shows its name, and the ones you change show their current value.
 - **Covers Amazon's home completely.** A "Launching Home" screen is held until the new home is really on screen, so Amazon's home is never seen. The handover takes about a second. It also starts early at boot and survives the app being updated.
 - **No account, no cloud, no tracking.** The only network use is reading your wallpaper repository, and only if you name one; with the wallpaper off, it is never used.
 - **Reversible.** One command puts Amazon's home back.
@@ -86,8 +86,8 @@ Fire OS 7 (Android 9); Fire OS 5 needs its own check.
 
 ## Make the dock yours
 
-Press **Down** from the dock to the buttons at the bottom, move to the pencil, and press **OK**. The discs rock, and a
-line under them says what each button does. The controls:
+Press **Down** from the dock to the buttons at the bottom right, move to **Edit**, and press **OK**. The discs rock, and a
+line at the bottom left says what each button does. The controls:
 
 | You press | What happens |
 |---|---|
@@ -111,11 +111,11 @@ firehome/install.sh --dock "Netflix,YouTube,Prime Video"
 
 Up to six keep the order you give. With more, the first six by name go on the dock and the rest wait under **+**. The
 installer prints which names it found and which it did not. A dock you have already edited is left alone unless you add
-`--reset-dock`. The first time the home opens it also shows a one-time line pointing at the pencil.
+`--reset-dock`. The first time the home opens it also shows a one-time line pointing at Edit.
 
 ## Screensaver
 
-After the home has sat idle it shows the bare screen with the date and time on it, moving to a new place every ten
+After the home has sat idle it shows a black screen with the date and time on it, moving to a new place every ten
 seconds. Any button wakes it, and that press does nothing else. Choose the delay under **Settings > Screensaver**: Off,
 1, 5 (the default), 10, 15 or 30 minutes. It never starts while you are editing the dock.
 
@@ -135,9 +135,13 @@ your own images instead, the app downloads them from a GitHub repository of your
    The folder [`wallpaper-repo-template/`](wallpaper-repo-template/) has a ready-made README you can copy into the repository.
 3. **Name the files to order and credit them.** Name each image `NUMBER-First-Last.jpg`, for example
    `1-Raghava-Boppudi.jpg`, `2-Allen-Daniel.jpg`. The number is the order the wallpapers rotate in (1, 2, 3 ... 10, 11
-   are in numeric order). The words after it are the photographer: the screen shows `© Raghava Boppudi` bottom right.
+   are in numeric order). The words after it are the photographer: the screen shows `© Raghava Boppudi` at the bottom.
    A file with no number in front is shown after the numbered ones, and with no credit. Rename a file on GitHub with
    the pencil icon on its page, or with `git mv`.
+   **A picture for the greeting (optional).** The bottom left of the home says "Hello, NAME" with a small round picture
+   beside it. Put a file named `profile.jpg` at the top level of the same repository (any size: the TV cuts the middle
+   square out of it and shrinks it) and it is used for the picture; it is never shown as a wallpaper. Without one, only the
+   words show. Set NAME as `profile_name` in `config.xml` (blank hides the greeting).
 4. **Point the app at it.** Edit [`firehome/res/values/config.xml`](firehome/res/values/config.xml) and set
    `wallpaper_repo` to `YOUR-GITHUB-USERNAME/YOUR-REPO-NAME`. If the images are in a folder, put its name in
    `wallpaper_path`. Then run `firehome/install.sh` again.

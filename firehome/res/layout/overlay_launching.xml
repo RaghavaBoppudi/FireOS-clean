@@ -1,20 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Shown over Amazon's home while ours takes its place: a spinner with its caption in the middle of the ground -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Shown over Amazon's home while ours takes its place: black at once, then the ground of the home (its wallpaper, if
+     it has one) coming up over it, with a spinner and its caption in the middle -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?ground"
-    android:gravity="center"
-    android:orientation="horizontal">
+    android:background="@color/window_black">
 
-    <com.firehome.SpinnerView
-        android:layout_width="@dimen/spinner_size"
-        android:layout_height="@dimen/spinner_size" />
+    <ImageView
+        android:id="@+id/cover"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?ground"
+        android:scaleType="centerCrop" />
 
-    <TextView
-        style="@style/Text.Label"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/spinner_gap"
-        android:text="@string/launching" />
-</LinearLayout>
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <com.firehome.SpinnerView
+            android:layout_width="@dimen/spinner_size"
+            android:layout_height="@dimen/spinner_size" />
+
+        <TextView
+            style="@style/Text.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spinner_gap"
+            android:text="@string/launching" />
+    </LinearLayout>
+</FrameLayout>

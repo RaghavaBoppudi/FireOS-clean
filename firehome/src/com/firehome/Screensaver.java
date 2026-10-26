@@ -29,6 +29,7 @@ final class Screensaver {
     private final View clock;
     private final long moveMs;
     private final long glideMs;
+    private final long wakeMs;
     private boolean showing;
     private boolean swallowUp;      // the key that woke the screen has not been released yet
     private int lastX = -1;
@@ -59,6 +60,7 @@ final class Screensaver {
         clock = home.findViewById(R.id.saver_clock);
         moveMs = home.getResources().getInteger(R.integer.screensaver_move_ms);
         glideMs = home.getResources().getInteger(R.integer.screensaver_glide_ms);
+        wakeMs = home.getResources().getInteger(R.integer.screensaver_wake_ms);
     }
 
     // --- the setting
@@ -112,7 +114,7 @@ final class Screensaver {
         if (showing) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 swallowUp = true;
-                hide();
+                fadeOut();
                 rearm();
             }
             return true;
@@ -131,6 +133,7 @@ final class Screensaver {
 
     private void show() {
         showing = true;
+        screen.animate().cancel();     // a fade out that is still running must not hide it
         screen.setAlpha(0f);
         screen.setVisibility(View.VISIBLE);
         screen.animate().alpha(1f).setDuration(glideMs);
@@ -149,11 +152,28 @@ final class Screensaver {
         if (!showing) {
             return;
         }
+        end();
+        screen.animate().cancel();
+        screen.setVisibility(View.GONE);
+    }
+
+    /** Wakes the screen: the black fades away, quickly, so that a lit screen does not jump out of the dark. */
+    private void fadeOut() {
+        end();
+        screen.animate().alpha(0f).setDuration(wakeMs).withEndAction(new Runnable() {
+            @Override
+            public void run() {
+                if (!showing) {
+                    screen.setVisibility(View.GONE);
+                }
+            }
+        });
+    }
+
+    private void end() {
         showing = false;
         handler.removeCallbacks(move);
-        screen.animate().cancel();
         clock.animate().cancel();
-        screen.setVisibility(View.GONE);
     }
 
     /** Moves the clock to a new place: it fades out where it was, and in where it goes. */

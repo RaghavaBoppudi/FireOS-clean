@@ -44,6 +44,10 @@ import java.util.regex.Pattern;
  *  - the repository is reachable but has none (or is empty): the cache is cleared, so the built-in wallpapers are used;
  *  - GitHub cannot be reached, or answers with an error: the cache is left as it is.
  *
+ * A file named profile.jpg is not a wallpaper: it is the small picture beside the greeting (see Profile).
+ * It is cut to a square and shrunk to Profile.SIZE, so it can be any size; remove it from the repository and the
+ * picture goes from the TV at the next sync.
+ *
  * The file name carries the order and the credit: "3-Raghava-Boppudi.jpg" comes third and is credited to Raghava
  * Boppudi. A file with no number in front is shown after the numbered ones, and with no credit.
  */
@@ -59,8 +63,9 @@ final class RemoteWallpapers {
     private static final long FALLBACK_PIXELS = 12L * 1000 * 1000;      // for formats that cannot be decoded in part
     private static final int WIDTH = 1920;
     private static final int HEIGHT = 1080;
+    private static final String PROFILE_SHA = "profile.sha";   // which version of the profile picture is on disk
     private static final int TIMEOUT_MS = 20 * 1000;
-    private static final String ETAG = "etag-v2";   // the index changed shape: a saved tag from before must not hide it
+    private static final String ETAG = "etag-v3";   // the sync learned something new (the profile picture): a saved tag from before must not hide it
     private static final Pattern SHA = Pattern.compile("[0-9a-f]{40}");
     private static final Pattern IMAGE = Pattern.compile(".+\\.(jpe?g|png|webp)", Pattern.CASE_INSENSITIVE);
     private static final String PREFERENCES = "remote_wallpapers";
@@ -184,6 +189,7 @@ final class RemoteWallpapers {
                     count = sync(app, state);
                     state.edit().putBoolean("ok", true).apply();
                     Wallpaper.stale();
+                    Profile.stale();
                     outcome = count < 0 ? Outcome.CURRENT : count == 0 ? Outcome.EMPTY : Outcome.SYNCED;
                     count = Math.max(count, 0);
                 } catch (DeniedException e) {
@@ -243,6 +249,7 @@ final class RemoteWallpapers {
                 throw new DeniedException("not found: " + url);
             }
             keepOnly(dir, new JSONArray());
+            syncProfile(dir, null);
             state.edit().remove(ETAG).apply();
             return 0;
         }
@@ -257,6 +264,7 @@ final class RemoteWallpapers {
         String newEtag = connection.getHeaderField("ETag");
 
         Map<String, JSONObject> images = new TreeMap<>(WallpaperName.ORDER);
+        JSONObject profile = null;
         for (int i = 0; i < listing.length(); i++) {
             JSONObject entry = listing.getJSONObject(i);
             if (!"file".equals(entry.optString("type"))) {
@@ -265,7 +273,11 @@ final class RemoteWallpapers {
             String name = entry.getString("name");
             if (IMAGE.matcher(name).matches() && entry.optLong("size") <= MAX_IMAGE_BYTES
                     && SHA.matcher(entry.optString("sha")).matches()) {
-                images.put(name, entry);
+                if (name.equalsIgnoreCase(Profile.FILE)) {
+                    profile = entry;       // the picture beside the greeting, not a wallpaper
+                } else {
+                    images.put(name, entry);
+                }
             }
         }
 
@@ -274,7 +286,7 @@ final class RemoteWallpapers {
             String name = image.getKey();
             String sha = image.getValue().getString("sha");
             File file = new File(dir, sha + ".jpg");
-            if (!file.isFile() && !fetch(image.getValue().getString("download_url"), file)) {
+            if (!file.isFile() && !fetch(image.getValue().getString("download_url"), file, WIDTH, HEIGHT)) {
                 continue;   // not an image after all: skipped
             }
             JSONObject item = new JSONObject().put("file", file.getName());
@@ -285,6 +297,7 @@ final class RemoteWallpapers {
             index.put(item);
         }
         keepOnly(dir, index);
+        syncProfile(dir, profile);
         if (newEtag != null) {
             state.edit().putString(ETAG, newEtag).apply();
         }
@@ -300,6 +313,8 @@ final class RemoteWallpapers {
         }
         List<String> keep = new ArrayList<>();
         keep.add(INDEX);
+        keep.add(Profile.FILE);
+        keep.add(PROFILE_SHA);
         for (int i = 0; i < index.length(); i++) {
             keep.add(index.optJSONObject(i).optString("file"));
         }
@@ -316,26 +331,53 @@ final class RemoteWallpapers {
     // --- downloading ---
 
     /**
-     * Downloads an image to disk, then cuts it to 16:9 at 1920 x 1080. Whatever the size of the original, memory use
-     * stays flat: the download never sits in memory, and only the part of the picture that is kept is decoded.
-     * False if it is not a usable image.
+     * Makes the profile picture on disk the one in the repository, or removes it if there is none: the repository says
+     * what it is. It is cut to a square, and shrunk to Profile.SIZE, however large the original is. A picture that
+     * cannot be used is as good as none.
      */
-    private static boolean fetch(String url, File target) throws IOException {
+    private static void syncProfile(File dir, JSONObject entry) throws IOException, JSONException {
+        File picture = new File(dir, Profile.FILE);
+        File version = new File(dir, PROFILE_SHA);
+        if (entry == null) {
+            picture.delete();
+            version.delete();
+            return;
+        }
+        String sha = entry.getString("sha");
+        String have = version.isFile() ? new String(readAll(new FileInputStream(version), 64), "UTF-8") : "";
+        if (picture.isFile() && sha.equals(have)) {
+            return;
+        }
+        if (fetch(entry.getString("download_url"), picture, Profile.SIZE, Profile.SIZE)) {
+            write(version, sha.getBytes("UTF-8"));
+        } else {
+            picture.delete();
+            version.delete();
+        }
+    }
+
+    /**
+     * Downloads an image to disk, then cuts the middle of it, at the shape of {@code width} x {@code height}, to that
+     * size. Whatever the size of the original, memory use stays flat: the download never sits in memory, and only the
+     * part of the picture that is kept is decoded. False if it is not a usable image.
+     */
+    private static boolean fetch(String url, File target, int width, int height) throws IOException {
         File source = new File(target.getParentFile(), target.getName() + ".src");
         try {
             downloadTo(url, source);
-            return cut(source, target);
+            return cut(source, target, width, height);
         } finally {
             source.delete();
         }
     }
 
     /**
-     * Writes the middle 16:9 of the picture in {@code source} to {@code target} as a 1920 x 1080 jpeg. The window is
-     * decoded alone, and at the largest reduction that still leaves it at least 1920 wide (which the decoder does
-     * cheaply), so a 100 megapixel photograph costs no more memory than an ordinary one.
+     * Writes the middle of the picture in {@code source}, at the shape of {@code outWidth} x {@code outHeight}, to
+     * {@code target} as a jpeg of that size. The window is decoded alone, and at the largest reduction that still leaves
+     * it at least that wide (which the decoder does cheaply), so a 100 megapixel photograph costs no more memory than
+     * an ordinary one.
      */
-    static boolean cut(File source, File target) throws IOException {
+    static boolean cut(File source, File target, int outWidth, int outHeight) throws IOException {
         BitmapFactory.Options bounds = new BitmapFactory.Options();
         bounds.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(source.getPath(), bounds);
@@ -344,18 +386,18 @@ final class RemoteWallpapers {
         if (width <= 0 || height <= 0 || (long) width * height > MAX_PIXELS) {
             return false;
         }
-        int windowWidth = Math.min(width, Math.round(height * (float) WIDTH / HEIGHT));
-        int windowHeight = Math.min(height, Math.round(width * (float) HEIGHT / WIDTH));
+        int windowWidth = Math.min(width, Math.round(height * (float) outWidth / outHeight));
+        int windowHeight = Math.min(height, Math.round(width * (float) outHeight / outWidth));
         Rect window = new Rect((width - windowWidth) / 2, (height - windowHeight) / 2,
                 (width - windowWidth) / 2 + windowWidth, (height - windowHeight) / 2 + windowHeight);
 
         Bitmap cut = null;
         try {
-            Bitmap piece = decodeWindow(source, window, width, height);
+            Bitmap piece = decodeWindow(source, window, width, height, outWidth);
             if (piece == null) {
                 return false;
             }
-            cut = Bitmap.createScaledBitmap(piece, WIDTH, HEIGHT, true);
+            cut = Bitmap.createScaledBitmap(piece, outWidth, outHeight, true);
             if (cut != piece) {
                 piece.recycle();
             }
@@ -379,9 +421,9 @@ final class RemoteWallpapers {
         }
     }
 
-    private static Bitmap decodeWindow(File source, Rect window, int width, int height) {
+    private static Bitmap decodeWindow(File source, Rect window, int width, int height, int outWidth) {
         BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = Integer.highestOneBit(Math.max(1, window.width() / WIDTH));
+        options.inSampleSize = Integer.highestOneBit(Math.max(1, window.width() / outWidth));
         try {
             BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(source.getPath(), false);
             try {
