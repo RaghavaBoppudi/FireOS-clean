@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- The public GitHub repository the wallpapers are downloaded from, as OWNER/NAME, and the folder in it ("" for
-         the top level). Put 16:9 images there (jpg, png or webp); with none, or with no repository named, the gradients
-         bundled in the app are used. See "Your own wallpapers" in the README. -->
-    <string name="wallpaper_repo" translatable="false"></string>
-    <string name="wallpaper_path" translatable="false"></string>
-</resources>

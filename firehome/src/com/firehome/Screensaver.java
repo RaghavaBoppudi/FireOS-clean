@@ -2,19 +2,16 @@ package com.firehome;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.util.Random;
 
 /**
- * The screensaver of the home screen: after the home has sat unused for a while, the wallpaper blurred as far as it
- * goes, and nothing on it but the time and the date, which move to a new place every few seconds so that no pixel of
- * an old picture is held in one place. Any button wakes it, and that button does nothing else.
+ * The screensaver of the home screen: after the home has sat unused for a while, the bare ground, and nothing on it
+ * but the date and time, which move to a new place every few seconds so that no pixel of the screen is held in one
+ * place. Any button wakes it, and that button does nothing else.
  *
  * It belongs to the home screen alone: it counts idle time while Home is on screen, and not while the dock is being
  * edited. How long it waits (or never) is a setting; the choices are in integers.xml.
@@ -23,17 +20,13 @@ final class Screensaver {
     private static final String PREFERENCES = "screensaver";
     private static final String KEY_INDEX = "index";
     private static final long MINUTE_MS = 60 * 1000L;
-    private static final float LIGHT_ABOVE = 0.55f;   // a picture lighter than this takes dark text
 
     private final HomeActivity home;
     private final DockEditor editor;
     private final Handler handler = new Handler();
     private final Random random = new Random();
     private final View screen;
-    private final ImageView picture;
     private final View clock;
-    private final TextView time;
-    private final TextView date;
     private final long moveMs;
     private final long glideMs;
     private boolean showing;
@@ -63,10 +56,7 @@ final class Screensaver {
         this.home = home;
         this.editor = editor;
         screen = home.findViewById(R.id.screensaver);
-        picture = (ImageView) home.findViewById(R.id.saver_picture);
         clock = home.findViewById(R.id.saver_clock);
-        time = (TextView) home.findViewById(R.id.saver_time);
-        date = (TextView) home.findViewById(R.id.saver_date);
         moveMs = home.getResources().getInteger(R.integer.screensaver_move_ms);
         glideMs = home.getResources().getInteger(R.integer.screensaver_glide_ms);
     }
@@ -140,15 +130,6 @@ final class Screensaver {
     // --- showing it
 
     private void show() {
-        Bitmap soft = home.wallpaper().softest();
-        if (soft != null) {
-            picture.setImageBitmap(soft);
-        }
-        boolean light = soft != null && Wallpapers.lightOf(soft) > LIGHT_ABOVE;
-        int ink = home.getResources().getColor(light ? R.color.ink_on_light : R.color.ink);
-        int dim = home.getResources().getColor(light ? R.color.ink_dim_on_light : R.color.ink_dim);
-        time.setTextColor(ink);
-        date.setTextColor(dim);
         showing = true;
         screen.setAlpha(0f);
         screen.setVisibility(View.VISIBLE);
@@ -173,7 +154,6 @@ final class Screensaver {
         screen.animate().cancel();
         clock.animate().cancel();
         screen.setVisibility(View.GONE);
-        picture.setImageDrawable(null);     // the small picture is let go
     }
 
     /** Moves the clock to a new place: it fades out where it was, and in where it goes. */

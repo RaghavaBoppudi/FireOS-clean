@@ -44,7 +44,7 @@ public class SpinnerView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
         float inset = stroke / 2f;
         bounds.set(inset, inset, w - inset, h - inset);
-        int ink = getResources().getColor(R.color.ink);
+        int ink = Look.colour(getContext(), R.attr.ink);
         ring.setShader(new SweepGradient(w / 2f, h / 2f, new int[]{Color.TRANSPARENT, ink},
                 new float[]{0.05f, 1f}));
     }

@@ -6,10 +6,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,36 +23,32 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The home screen: date and time, buttons for all apps, settings and editing the dock, and a frosted dock of up to six
- * apps over a photograph that changes through the day. The user chooses the apps in edit mode (DockEditor). Apps switched off by
- * tools/disable.sh are not listed. HomeWatcher brings this up whenever Amazon's home is started.
+ * The home screen: the date and time across the top, up to six apps in a row in the middle of the screen, and three
+ * buttons (all apps, edit, settings) at the bottom right. The user chooses the apps in edit mode (DockEditor). Apps
+ * switched off by tools/disable.sh are not listed. HomeWatcher brings this up whenever Amazon's home is started.
  *
- * The screens that share this layout of a shelf of tiles under a wash, Settings and All apps, extend it.
+ * All apps and Settings share its shelf of discs and extend it.
  */
 public class HomeActivity extends Activity {
     static final String AMAZON_HOME = "com.amazon.tv.launcher";
     // Menu on the remote opens Amazon's home this long, the way out if the stick needs it
     private static final long AMAZON_PAUSE_MS = 10 * 60 * 1000L;
-
+    private static final long HINT_FADE_MS = 180;
 
     // An app was opened from one of these screens: when Home is next shown, select the first tile, which is now it
     private static boolean appOpened;
 
-    private final Map<String, View> views = new LinkedHashMap<>();   // by Tile.key, in shelf order
+    private final Map<String, Bubble> views = new LinkedHashMap<>();   // by Tile.key, in shelf order
     private final List<String> shown = new ArrayList<>();
+    private boolean dark;                 // the look this screen was made in
     private AppCatalog catalog;
     private DockStore store;
     private DockEditor editor;            // only on Home itself
     private Screensaver screensaver;      // and this
     private List<String> manual;          // packages in the order the user last put them, until the next app is opened
-    private WallpaperView wallpaper;
-    private TextView credit;
-    private TextView clock;
-    private TextView title;               // the name of the screen, on the right of the top bar, where there is one
-    private GlyphButton[] buttons = new GlyphButton[0];
-    private LinearLayout row;
-    private TextView caption;     // only where there is a line to write above the shelf
-    private String selected;      // Tile.key; null selects the first tile
+    private LinearLayout shelf;
+    private TextView hint;
+    private String selected;              // Tile.key; null selects the first tile
 
     private final BroadcastReceiver packagesChanged = new BroadcastReceiver() {
         @Override
@@ -63,54 +60,30 @@ public class HomeActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle state) {
+        Look.apply(this);
+        dark = Look.dark(this);
         super.onCreate(state);
         startService(new Intent(this, HomeWatcher.class));
         setContentView(layout());
         catalog = new AppCatalog(this);
-        wallpaper = (WallpaperView) findViewById(R.id.wallpaper);
-        credit = (TextView) findViewById(R.id.credit);
-        FrostedPanel panel = (FrostedPanel) findViewById(R.id.panel);
-        if (panel != null) {
-            panel.setWallpaper(wallpaper);
-        }
-        wallpaper.setListener(new WallpaperView.Listener() {
-            @Override
-            public void onPhoto(Wallpapers.Photo photo) {
-                credit.setText(photo.credit != null ? getString(R.string.credit, photo.credit) : "");
-                credit.setVisibility(photo.credit != null ? View.VISIBLE : View.GONE);
-            }
-
-            @Override
-            public void onTone(float dateLight, float buttonLight) {
-                tone(dateLight, buttonLight);
-            }
-        });
-        row =(LinearLayout) findViewById(R.id.row);
-        caption = (TextView) findViewById(R.id.caption);
-        open(R.id.button_all_apps, AllAppsActivity.class);
-        open(R.id.button_settings, SettingsActivity.class);
-        clock = (TextView) findViewById(R.id.clock);
-        title = (TextView) findViewById(R.id.title);
-        List<GlyphButton> glyphs = new ArrayList<>();
-        for (int id : new int[]{R.id.button_all_apps, R.id.button_edit, R.id.button_settings}) {
-            View glyph = findViewById(id);
-            if (glyph != null) {
-                glyphs.add((GlyphButton) glyph);
-            }
-        }
-        buttons = glyphs.toArray(new GlyphButton[0]);
         store = new DockStore(this);
-        View edit = findViewById(R.id.button_edit);
-        if (edit != null) {
-            editor = new DockEditor(this, store, new View[]{
-                    findViewById(R.id.button_all_apps), edit, findViewById(R.id.button_settings)});
+        shelf = (LinearLayout) findViewById(R.id.shelf);
+        hint = (TextView) findViewById(R.id.hint);
+        LinearLayout buttons = (LinearLayout) findViewById(R.id.buttons);
+        if (buttons != null) {
+            addButton(buttons, "all_apps", R.string.all_apps, R.drawable.ic_applications);
+            Bubble edit = addButton(buttons, "edit", R.string.edit_dock, R.drawable.ic_edit);
+            addButton(buttons, "settings", R.string.settings, R.drawable.ic_settings);
+            editor = new DockEditor(this, store, buttons);
+            screensaver = new Screensaver(this, editor);
             edit.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     editor.enter();
                 }
             });
-            screensaver = new Screensaver(this, editor);
+            open(buttons.getChildAt(0), AllAppsActivity.class);
+            open(buttons.getChildAt(2), SettingsActivity.class);
         }
 
         IntentFilter packages = new IntentFilter();
@@ -130,6 +103,10 @@ public class HomeActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (Look.dark(this) != dark) {
+            recreate();            // the look was changed on another screen
+            return;
+        }
         HomeWatcher.pause(0);      // back from an app or Amazon's home: Home brings this screen up again
         if (screensaver != null) {
             screensaver.rearm();
@@ -179,20 +156,6 @@ public class HomeActivity extends Activity {
     }
 
     @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-        if (level >= TRIM_MEMORY_RUNNING_LOW) {
-            // the system is short of memory (this app runs a foreground service, so it is never sent the "cached
-            // process" levels): the pictures are the bulk of what it holds, and are cheap to remake
-            wallpaper.release();
-            Wallpapers.get(this).trim();
-            // the pictures' memory is returned when they are collected, which would otherwise wait for a Java heap that
-            // is nowhere near full
-            System.gc();
-        }
-    }
-
-    @Override
     public void onBackPressed() {
         // this is Home: Back has nowhere to go
     }
@@ -214,50 +177,32 @@ public class HomeActivity extends Activity {
         return catalog;
     }
 
-    /**
-     * The text and buttons across the top follow the photograph under them: white over a dark one, near black over a
-     * light one, and in between while one fades into the other.
-     */
-    private void tone(float dateLight, float buttonLight) {
-        clock.setTextColor(blend(getResources().getColor(R.color.ink), getResources().getColor(R.color.ink_on_light), dateLight));
-        clock.setShadowLayer(8f, 0f, 1f, Color.argb(Math.round(0x99 * (1f - dateLight)), 0, 0, 0));   // a shadow lifts white text, not black
-        if (title != null) {
-            title.setTextColor(blend(getResources().getColor(R.color.ink_dim),
-                    getResources().getColor(R.color.ink_dim_on_light), buttonLight));
-            title.setShadowLayer(8f, 0f, 1f, Color.argb(Math.round(0x99 * (1f - buttonLight)), 0, 0, 0));
-        }
-        for (GlyphButton button : buttons) {
-            button.setTone(buttonLight);
-        }
-    }
-
-    private static int blend(int from, int to, float amount) {
-        return Color.argb(Math.round(Color.alpha(from) + (Color.alpha(to) - Color.alpha(from)) * amount),
-                Math.round(Color.red(from) + (Color.red(to) - Color.red(from)) * amount),
-                Math.round(Color.green(from) + (Color.green(to) - Color.green(from)) * amount),
-                Math.round(Color.blue(from) + (Color.blue(to) - Color.blue(from)) * amount));
-    }
-
-    /** The view of a tile, once the shelf is laid out; null if it is not shown. */
-    protected final TileView viewOf(Tile tile) {
-        View view = views.get(tile.key);
-        return view instanceof TileView ? (TileView) view : null;
-    }
-
-    /** Writes a line above the dock, for the screens that have a caption. */
-    protected final void say(String text) {
-        if (caption != null) {
-            caption.setText(text);
-        }
-    }
-
-    protected final WallpaperView wallpaper() {
-        return wallpaper;
+    /** True for a screen that lays its tiles out in rows of grid_columns; false, one row. */
+    protected boolean grid() {
+        return false;
     }
 
     /** The tiles to show, in order. */
     protected List<Tile> tiles() {
         return dockTiles();
+    }
+
+    /** The view of a tile, once the shelf is laid out; null if it is not shown. */
+    protected final Bubble viewOf(Tile tile) {
+        return views.get(tile.key);
+    }
+
+    /** The tile that has the selection, by Tile.key; null before anything has. */
+    String selectedKey() {
+        return selected;
+    }
+
+    /** Writes a line at the bottom of the screen, or clears it. */
+    void say(String text) {
+        if (text != null) {
+            hint.setText(text);
+        }
+        hint.animate().alpha(text != null ? 1f : 0f).setDuration(HINT_FADE_MS).setInterpolator(Bubble.OUT);
     }
 
     /**
@@ -303,9 +248,7 @@ public class HomeActivity extends Activity {
 
     /** Edit mode is over: show the dock again, with the order the user left it in, and select this tile. */
     void finishEditing(List<String> order, String focusKey) {
-        if (screensaver != null) {
-            screensaver.rearm();   // the idle time counts again from the end of editing
-        }
+        screensaver.rearm();       // the idle time counts again from the end of editing
         manual = order;
         selected = focusKey;
         shown.clear();
@@ -319,55 +262,44 @@ public class HomeActivity extends Activity {
         }
     };
 
-    /** Lay the tiles out in the shelf; the default is one row. Each tile view comes from tileView(). */
-    protected void show(LinearLayout shelf, List<Tile> tiles) {
-        int width = getResources().getDimensionPixelSize(R.dimen.tile_width);
-        int height = getResources().getDimensionPixelSize(R.dimen.tile_height);
-        int gap = getResources().getDimensionPixelSize(R.dimen.tile_gap);
-        for (int i = 0; i < tiles.size(); i++) {
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
-            params.setMarginStart(i == 0 ? 0 : gap);
-            shelf.addView(tileView(tiles.get(i)), params);
-        }
-    }
-
     /**
-     * Lay the tiles out in rows of grid_columns, the first row filling from the left. The grid is always as wide as
-     * its columns, whatever the count, so the panel around it does not change width with the number of tiles.
+     * Lays the tiles out in lines of {@code columns} slots, the first line filling from the left, and keeps the block
+     * in the middle of the screen: a single line is placed so that the middle of its discs is the middle of the
+     * screen, and a grid of many lines keeps clear of the clock and the buttons on both sides and scrolls. Each line is
+     * as wide as its columns, whatever the count, so the grid keeps its shape.
      */
-    protected final void showGrid(LinearLayout shelf, List<Tile> tiles, int height) {
-        int columns = getResources().getInteger(R.integer.grid_columns);
-        int width = getResources().getDimensionPixelSize(R.dimen.tile_width);
-        int gap = getResources().getDimensionPixelSize(R.dimen.tile_gap);
-        int lineWidth = columns * width + (columns - 1) * gap;
+    final void showGrid(List<Tile> tiles, int columns) {
+        views.clear();
+        shelf.removeAllViews();
+        Resources res = getResources();
+        int width = res.getDimensionPixelSize(R.dimen.slot_width);
+        int height = res.getDimensionPixelSize(R.dimen.slot_height);
+        int disc = res.getDimensionPixelSize(R.dimen.disc);
+        int top = res.getDimensionPixelSize(R.dimen.slot_top);
+        boolean single = tiles.size() <= columns;
+        int inset = res.getDimensionPixelSize(R.dimen.grid_inset);
+        // a slot is taller below its disc than above it: a single line's padding makes up the difference
+        shelf.setPadding(0, single ? height - 2 * top - disc : inset, 0, single ? 0 : inset);
         LinearLayout line = null;
         for (int i = 0; i < tiles.size(); i++) {
             if (i % columns == 0) {
                 line = new LinearLayout(this);
                 line.setClipChildren(false);
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        lineWidth, LinearLayout.LayoutParams.WRAP_CONTENT);
-                params.topMargin = i == 0 ? 0 : gap;
-                shelf.addView(line, params);
+                shelf.addView(line, new LinearLayout.LayoutParams(columns * width, ViewGroup.LayoutParams.WRAP_CONTENT));
             }
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
-            params.setMarginStart(i % columns == 0 ? 0 : gap);
-            line.addView(tileView(tiles.get(i)), params);
+            line.addView(tileView(tiles.get(i)), new LinearLayout.LayoutParams(width, height));
         }
     }
 
-    protected final View tileView(final Tile tile) {
-        TileView view = new TileView(this, tile);
+    private View tileView(final Tile tile) {
+        Bubble view = new Bubble(this, tile, getResources().getDimensionPixelSize(R.dimen.disc), false);
         views.put(tile.key, view);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (tile.intent == null && tile.action == null) {
-                    return;
-                }
                 if (tile.action != null) {
-                    ((TileView) v).setCaption(tile.action.run());
-                } else {
+                    ((Bubble) v).setCaption(tile.action.run());
+                } else if (tile.intent != null) {
                     launch(tile.intent, getString(R.string.error_open, tile.label),
                             !getPackageName().equals(tile.packageName()));
                 }
@@ -397,9 +329,8 @@ public class HomeActivity extends Activity {
         if (!keys.equals(shown)) {
             shown.clear();
             shown.addAll(keys);
-            views.clear();
-            row.removeAllViews();
-            show(row, tiles);
+            showGrid(tiles, Math.max(1, grid() ? Math.min(tiles.size(), getResources().getInteger(R.integer.grid_columns))
+                    : tiles.size()));
         }
         View target = views.get(selected);
         if (target == null && !views.isEmpty()) {
@@ -410,17 +341,23 @@ public class HomeActivity extends Activity {
         }
     }
 
-    private void open(int buttonId, final Class<? extends Activity> screen) {
-        View button = findViewById(buttonId);
-        if (button != null) {
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    launch(new Intent(HomeActivity.this, screen),
-                            getString(R.string.error_open, v.getContentDescription()), false);
-                }
-            });
-        }
+    private Bubble addButton(LinearLayout row, String key, int label, int glyph) {
+        Bubble button = new Bubble(this, Tile.plain(key, getString(label), getResources().getDrawable(glyph)),
+                getResources().getDimensionPixelSize(R.dimen.button_glyph), true);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                getResources().getDimensionPixelSize(R.dimen.slot_width) * 2 / 3, ViewGroup.LayoutParams.WRAP_CONTENT);
+        row.addView(button, params);
+        return button;
+    }
+
+    private void open(View button, final Class<? extends Activity> screen) {
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launch(new Intent(HomeActivity.this, screen),
+                        getString(R.string.error_open, v.getContentDescription()), false);
+            }
+        });
     }
 
     private void openAmazonHome() {

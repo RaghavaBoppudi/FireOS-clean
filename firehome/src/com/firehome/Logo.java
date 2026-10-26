@@ -10,7 +10,9 @@ import android.graphics.drawable.Drawable;
 /**
  * Cuts an app's mark out of its artwork as white shapes on transparency. App artwork is a logo on a flat or
  * gently graded backdrop, so each pixel counts as part of the mark by how far its colour is from the backdrop's;
- * a mark that is white on a colour and one that is dark on white both come out white.
+ * a mark that is white on a colour and one that is dark on white both come out white. Artwork that is an icon with
+ * its name beside it gives the icon; a name over a swoosh gives the swoosh; artwork that is a name alone gives
+ * nothing, and the app's first letter stands in.
  */
 final class Logo {
     private static final int MAX_SIDE = 256;
@@ -22,12 +24,25 @@ final class Logo {
     private static final float PRESENT = 0.3f;
     private static final float MARGIN = 0.04f;
     private static final float MIN_COVER = 0.004f;
+    // A wordmark beside an icon is dropped: the mark ends at the first gap this wide, as a share of its height ...
+    private static final float GAP = 0.04f;
+    private static final int MIN_GAP = 2;
+    // ... and a mark still wider than this, as a multiple of its height, or much shorter than the artwork, is a name;
+    // if a swoosh under it can be told apart it is the mark (up to the second limit), and if not there is no mark
+    private static final float WIDE = 1.6f;
+    private static final float SWOOSH = 6f;
+    private static final float TALL = 0.85f;
+    // a row narrower than this share of the artwork's width is a letter's tail, not part of a swoosh
+    private static final float TAIL = 0.05f;
 
     private Logo() {
     }
 
-    /** The mark cropped to its bounds, or null if the artwork has nothing that stands out from its backdrop. */
-    static Drawable mono(Resources res, Drawable art) {
+    /**
+     * The mark cropped to its bounds, or null if the artwork has nothing that stands out from its backdrop. With
+     * {@code whole} everything that stands out is the mark, name included (the Appstore's is what tells it apart).
+     */
+    static Drawable mono(Resources res, Drawable art, boolean whole) {
         int width = art.getIntrinsicWidth();
         int height = art.getIntrinsicHeight();
         if (width <= 0 || height <= 0) {
@@ -64,6 +79,27 @@ final class Logo {
             return null;
         }
 
+        if (!whole) {
+            int[] mark = leftmost(mask, w, new int[]{left, top, right, bottom});
+            // an icon stands as tall as the artwork; the first letter of a name does not
+            if (wide(mark, WIDE) || mark[3] - mark[1] < TALL * (bottom - top)) {
+                // a name over a swoosh: the swoosh is the mark, if the name can be told apart from it
+                int[] swoosh = lowest(mask, w, new int[]{left, top, right, bottom});
+                if (swoosh[3] - swoosh[1] >= bottom - top || wide(swoosh, SWOOSH)) {
+                    return null;
+                }
+                mark = swoosh;
+            }
+            left = mark[0];
+            top = mark[1];
+            right = mark[2];
+            bottom = mark[3];
+            left = mark[0];
+            top = mark[1];
+            right = mark[2];
+            bottom = mark[3];
+        }
+
         int pad = Math.round(Math.max(right - left, bottom - top) * MARGIN);
         left = Math.max(0, left - pad);
         top = Math.max(0, top - pad);
@@ -78,6 +114,68 @@ final class Logo {
             }
         }
         return new BitmapDrawable(res, Bitmap.createBitmap(white, cropWidth, cropHeight, Bitmap.Config.ARGB_8888));
+    }
+
+    private static boolean wide(int[] box, float limit) {
+        return box[2] - box[0] + 1 > limit * (box[3] - box[1] + 1);
+    }
+
+    /** The first part of the mark reading left to right: up to the first gap in its columns as wide as GAP of its height. */
+    private static int[] leftmost(float[] mask, int w, int[] box) {
+        int gap = Math.max(MIN_GAP, Math.round((box[3] - box[1] + 1) * GAP));
+        int empty = 0;
+        int end = box[0];
+        for (int x = box[0]; x <= box[2] && empty < gap; x++) {
+            boolean inked = false;
+            for (int y = box[1]; y <= box[3] && !inked; y++) {
+                inked = mask[y * w + x] >= PRESENT;
+            }
+            empty = inked ? 0 : empty + 1;
+            end = inked ? x : end;
+        }
+        return tighten(mask, w, new int[]{box[0], box[1], end, box[3]});
+    }
+
+    /**
+     * The lowest part of the mark: the rows up from the bottom while they have something in them, and once the part
+     * has been seen to be broad, only while they stay broad, so a letter's tail that touches a swoosh is left out.
+     */
+    private static int[] lowest(float[] mask, int w, int[] box) {
+        int minSpan = Math.round((box[2] - box[0] + 1) * TAIL);
+        boolean broad = false;
+        int start = box[3];
+        for (int y = box[3]; y >= box[1]; y--) {
+            int first = -1;
+            int last = -1;
+            for (int x = box[0]; x <= box[2]; x++) {
+                if (mask[y * w + x] >= PRESENT) {
+                    first = first < 0 ? x : first;
+                    last = x;
+                }
+            }
+            int span = first < 0 ? 0 : last - first + 1;
+            broad |= span >= minSpan;
+            if (span == 0 || broad && span < minSpan) {
+                break;
+            }
+            start = y;
+        }
+        return tighten(mask, w, new int[]{box[0], start, box[2], box[3]});
+    }
+
+    private static int[] tighten(float[] mask, int w, int[] box) {
+        int[] tight = {box[2], box[3], box[0], box[1]};
+        for (int y = box[1]; y <= box[3]; y++) {
+            for (int x = box[0]; x <= box[2]; x++) {
+                if (mask[y * w + x] >= PRESENT) {
+                    tight[0] = Math.min(tight[0], x);
+                    tight[1] = Math.min(tight[1], y);
+                    tight[2] = Math.max(tight[2], x);
+                    tight[3] = Math.max(tight[3], y);
+                }
+            }
+        }
+        return tight;
     }
 
     private static int[] pixels(Drawable art, int w, int h) {

@@ -19,11 +19,12 @@
     <string name="settings_controllers">Controllers</string>
     <string name="settings_applications">Apps</string>
     <string name="settings_device">My Fire TV</string>
-    <string name="settings_background">Wallpaper timer</string>
-    <string name="settings_refresh">New wallpapers</string>
     <string name="settings_dock_order">Dock order</string>
     <string name="order_recent">Recents first</string>
     <string name="order_alphabetical">A to Z</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
     <string name="settings_screensaver">Screensaver</string>
     <!-- under the Screensaver setting; same order as screensaver_minutes in integers.xml -->
     <string-array name="screensaver_captions">
@@ -34,31 +35,7 @@
         <item>After 15 min</item>
         <item>After 30 min</item>
     </string-array>
-    <string name="first_run_hint">Customize your dock with the pencil at the top right</string>
-    <string name="wallpapers_checking">Checking GitHub…</string>
-    <string name="wallpapers_not_set">No wallpaper repository is set: using the built-in wallpapers</string>
-    <string name="wallpapers_current">Wallpapers are up to date</string>
-    <string name="wallpapers_empty">The repository has no images yet: using the built-in wallpapers</string>
-    <string name="wallpapers_denied">GitHub won\'t show this TV the repository: check its name and the access token</string>
-    <string name="wallpapers_offline">Couldn\'t reach GitHub</string>
-    <plurals name="wallpapers_synced">
-        <item quantity="one">%d wallpaper from GitHub</item>
-        <item quantity="other">%d wallpapers from GitHub</item>
-    </plurals>
-    <string name="credit">\u00a9 %1$s</string>
-    <!-- under the Wallpaper timer setting; same order as interval_seconds in integers.xml -->
-    <string-array name="interval_captions">
-        <item>Every 30 sec</item>
-        <item>Every minute</item>
-        <item>Every 5 min</item>
-        <item>Every 15 min</item>
-        <item>Every 30 min</item>
-        <item>Every hour</item>
-        <item>Every 3 hours</item>
-        <item>Every 6 hours</item>
-        <item>Every 12 hours</item>
-        <item>Daily</item>
-    </string-array>
+    <string name="first_run_hint">Customize your dock with the pencil at the bottom right</string>
     <string name="amazon_home_notice">Amazon\'s home for the next 10 minutes</string>
     <string name="error_open">%1$s couldn\'t be opened.</string>
 </resources>

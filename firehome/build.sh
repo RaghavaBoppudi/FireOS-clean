@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the YouTube home without Gradle: aapt2, javac, d8, zipalign and apksigner from the Android SDK,
+# Build the home without Gradle: aapt2, javac, d8, zipalign and apksigner from the Android SDK,
 # nothing downloaded. Needs a JDK (17 works) and any build-tools and platform. Output: firehome/build/firehome.apk
 set -euo pipefail
 cd "$(dirname "$0")"

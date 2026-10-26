@@ -6,7 +6,10 @@ import android.graphics.drawable.LayerDrawable;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
-/** The Wi-Fi glyph as Android 5 drew it: a solid wedge, dimmed, with the same wedge filled from its point out to the signal. */
+/**
+ * The Wi-Fi glyph as Android 5 drew it: a solid wedge, dimmed, with the same wedge filled from its point out to the
+ * signal.
+ */
 final class WifiSignal {
     static final int LEVELS = 5;   // 0 (none) to 4 (full): the wedge fills in four steps
 

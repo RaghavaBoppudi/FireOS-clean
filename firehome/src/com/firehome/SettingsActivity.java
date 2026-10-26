@@ -6,18 +6,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.graphics.drawable.Drawable;
-import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Settings as a grid of solid icons, each with its name under it. Display & Sounds is left out: Amazon locks it to
- * its own launcher with a signature permission, so no other app can open it. The system's own entry point
- * (Settings.ACTION_SETTINGS) goes through Amazon's launcher, so this opens the pages Amazon's Settings grid links
- * to straight from the Settings app instead. The last two are this app's own: one steps through how often the
- * wallpaper changes, showing the choice under its name, and one fetches new wallpapers now. Back returns to the home
- * screen.
+ * Settings as a row of discs, each with its name under it. Display & Sounds is left out: Amazon locks it to its own
+ * launcher with a signature permission, so no other app can open it. The system's own entry point
+ * (Settings.ACTION_SETTINGS) goes through Amazon's launcher, so this opens the pages Amazon's Settings grid links to
+ * straight from the Settings app instead. The last three are this app's own: the theme, the order of the dock and the
+ * screensaver, each showing its choice under its name. Back returns to the home screen.
  */
 public class SettingsActivity extends HomeActivity {
     private static final int[] LABELS = {
@@ -48,10 +46,10 @@ public class SettingsActivity extends HomeActivity {
 
     private void showSignal() {
         int level = WifiSignal.level(this);
-        TileView view = network != null ? viewOf(network) : null;
+        Bubble view = network != null ? viewOf(network) : null;
         if (view != null && level != shownLevel) {
             shownLevel = level;
-            view.setMark(WifiSignal.glyph(this, level));
+            view.setGlyph(WifiSignal.glyph(this, level));
         }
     }
 
@@ -72,7 +70,7 @@ public class SettingsActivity extends HomeActivity {
 
     @Override
     protected int layout() {
-        return R.layout.activity_settings;
+        return R.layout.activity_plain;
     }
 
     @Override
@@ -81,35 +79,18 @@ public class SettingsActivity extends HomeActivity {
         for (int i = 0; i < LABELS.length; i++) {
             Drawable glyph = i == NETWORK ? WifiSignal.glyph(this, WifiSignal.level(this))
                     : getResources().getDrawable(ICONS[i]);
-            Tile tile = Tile.setting(ACTIONS[i], getString(LABELS[i]), glyph, new Intent(ACTIONS[i]));
+            Tile tile = Tile.page(ACTIONS[i], getString(LABELS[i]), glyph, new Intent(ACTIONS[i]));
             if (i == NETWORK) {
                 network = tile;
             }
             tiles.add(tile);
         }
-        tiles.add(Tile.setting("timer", getString(R.string.settings_background),
-                getResources().getDrawable(R.drawable.ic_timer), Wallpapers.get(this).intervalCaption(),
-                new Tile.Action() {
+        tiles.add(Tile.setting("theme", getString(R.string.settings_theme), getResources().getDrawable(R.drawable.ic_theme),
+                themeCaption(), new Tile.Action() {
                     @Override
                     public String run() {
-                        Wallpapers.get(SettingsActivity.this).nextInterval();
-                        wallpaper().refresh();
-                        return Wallpapers.get(SettingsActivity.this).intervalCaption();
-                    }
-                }));
-        tiles.add(Tile.setting("refresh", getString(R.string.settings_refresh),
-                getResources().getDrawable(R.drawable.ic_refresh), null, new Tile.Action() {
-                    @Override
-                    public String run() {
-                        say(getString(R.string.wallpapers_checking));
-                        RemoteWallpapers.syncNow(SettingsActivity.this, new RemoteWallpapers.Callback() {
-                            @Override
-                            public void onDone(RemoteWallpapers.Outcome outcome, int count) {
-                                if (!isFinishing()) {
-                                    say(refreshResult(outcome, count));
-                                }
-                            }
-                        });
+                        Look.toggle(SettingsActivity.this);
+                        recreate();
                         return null;
                     }
                 }));
@@ -133,34 +114,16 @@ public class SettingsActivity extends HomeActivity {
         return tiles;
     }
 
+    private String themeCaption() {
+        return getString(Look.dark(this) ? R.string.theme_dark : R.string.theme_light);
+    }
+
     private String orderCaption() {
         return getString(new DockStore(this).alphabetical() ? R.string.order_alphabetical : R.string.order_recent);
     }
 
     @Override
-    protected void show(LinearLayout shelf, List<Tile> tiles) {
-        showGrid(shelf, tiles, getResources().getDimensionPixelSize(R.dimen.tile_height_setting));
-    }
-
-    @Override
     public void onBackPressed() {
         finish();
-    }
-
-    private String refreshResult(RemoteWallpapers.Outcome outcome, int count) {
-        switch (outcome) {
-            case SYNCED:
-                return getResources().getQuantityString(R.plurals.wallpapers_synced, count, count);
-            case EMPTY:
-                return getString(R.string.wallpapers_empty);
-            case CURRENT:
-                return getString(R.string.wallpapers_current);
-            case DENIED:
-                return getString(R.string.wallpapers_denied);
-            case NOT_SET:
-                return getString(R.string.wallpapers_not_set);
-            default:
-                return getString(R.string.wallpapers_offline);
-        }
     }
 }

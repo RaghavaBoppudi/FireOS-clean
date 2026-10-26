@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The apps on the stick as tiles. Cutting a mark out of artwork and finding its colours is costly, so each app's
+ * The apps on the stick as tiles. Cutting a mark out of an icon is costly, so each app's
  * tile is made once and kept until a package changes.
  */
 final class AppCatalog {
@@ -27,6 +27,25 @@ final class AppCatalog {
     // Amazon services that declare a TV launcher entry but are not apps anyone opens
     private static final Set<String> HIDDEN = new HashSet<>(Arrays.asList(
             "com.firehome", HomeActivity.AMAZON_HOME, "com.amazon.firetv.troubleshooting", "com.amazon.spiderpork"));
+
+    // Apps whose own mark is bundled (Simple Icons, see NOTICE.md); any other has its mark cut from its icon (Logo)
+    private static final Map<String, Integer> LOGOS = new HashMap<>();
+
+    static {
+        LOGOS.put("com.netflix.ninja", R.drawable.logo_netflix);
+        LOGOS.put("com.amazon.firetv.youtube", R.drawable.logo_youtube);
+        LOGOS.put("com.google.android.youtube.tv", R.drawable.logo_youtube);
+        LOGOS.put("com.apple.atve.amazon.appletv", R.drawable.logo_apple);
+        LOGOS.put("com.spotify.tv.android", R.drawable.logo_spotify);
+        LOGOS.put("com.plexapp.android", R.drawable.logo_plex);
+        LOGOS.put("tv.twitch.android.app", R.drawable.logo_twitch);
+        LOGOS.put("org.xbmc.kodi", R.drawable.logo_kodi);
+        LOGOS.put("com.crunchyroll.crunchyroid", R.drawable.logo_crunchyroll);
+        LOGOS.put("com.cbs.ott", R.drawable.logo_paramountplus);
+        LOGOS.put("com.tubitv", R.drawable.logo_tubi);
+        LOGOS.put("com.wbd.stream", R.drawable.logo_max);
+        LOGOS.put("org.videolan.vlc", R.drawable.logo_vlc);
+    }
 
     private final Context context;
     private final PackageManager pm;
@@ -89,8 +108,7 @@ final class AppCatalog {
                     .setComponent(new ComponentName(activity.packageName, activity.name));
             Tile tile = tiles.get(intent.toUri(0));
             if (tile == null) {
-                Drawable banner = activity.loadBanner(pm);
-                tile = tile(String.valueOf(info.loadLabel(pm)), banner != null ? banner : info.loadIcon(pm), intent);
+                tile = tile(String.valueOf(info.loadLabel(pm)), activity.applicationInfo.loadIcon(pm), intent, false);
             }
             apps.add(tile);
         }
@@ -101,7 +119,7 @@ final class AppCatalog {
                 Tile tile = tiles.get(appstore.toUri(0));
                 try {
                     apps.add(tile != null ? tile
-                            : tile(context.getString(R.string.appstore), pm.getApplicationIcon(APPSTORE), appstore));
+                            : tile(context.getString(R.string.appstore), pm.getApplicationIcon(APPSTORE), appstore, true));
                 } catch (PackageManager.NameNotFoundException e) {
                     // not installed after all
                 }
@@ -110,10 +128,10 @@ final class AppCatalog {
         return apps;
     }
 
-    private Tile tile(String label, Drawable art, Intent intent) {
-        Drawable mark = Logo.mono(context.getResources(), art);
-        // the banner is only kept when no mark could be cut from it: it is far larger than the mark
-        Tile tile = Tile.opening(label, mark != null ? mark : art, mark, intent);
+    private Tile tile(String label, Drawable art, Intent intent, boolean whole) {
+        Integer logo = LOGOS.get(intent.getComponent().getPackageName());
+        Tile tile = Tile.app(label, logo != null ? context.getResources().getDrawable(logo)
+                : Logo.mono(context.getResources(), art, whole), intent);
         tiles.put(tile.key, tile);
         return tile;
     }

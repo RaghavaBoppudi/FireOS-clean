@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The colours of the interface, set by the Light and Dark themes: the screen; a disc on it, as frosted glass that
+         is lighter at the top and has a faint edge; and the ink that marks and text are drawn in, at full strength and
+         dimmed. A disc has a rim of light that fades from its top, steps up a tone while it is selected, and casts a
+         shadow (a glow, on a dark screen) -->
+    <attr name="ground" format="color" />
+    <attr name="discTop" format="color" />
+    <attr name="discBottom" format="color" />
+    <attr name="discRimTop" format="color" />
+    <attr name="discRimBottom" format="color" />
+    <attr name="discLift" format="color" />
+    <attr name="shadowAmbient" format="color" />
+    <attr name="shadowSpot" format="color" />
+    <attr name="ink" format="color" />
+    <attr name="inkDim" format="color" />
+</resources>

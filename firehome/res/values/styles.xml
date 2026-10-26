@@ -1,76 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The window is the ground colour from the first frame, with no transition of its own, so opening the
-         home never flashes white or slides in -->
-    <style name="HomeTheme" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
-        <item name="android:windowBackground">@color/ground</item>
-        <item name="android:colorBackground">@color/ground</item>
+    <!-- Each look's window is its ground colour from the first frame, with no transition of its own, so opening the
+         home never flashes or slides in -->
+    <style name="Base" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
+    <style name="Light" parent="Base">
+        <item name="android:windowBackground">@color/ground_light</item>
+        <item name="ground">@color/ground_light</item>
+        <item name="discTop">@color/disc_top_light</item>
+        <item name="discBottom">@color/disc_bottom_light</item>
+        <item name="discRimTop">@color/rim_top_light</item>
+        <item name="discRimBottom">@color/rim_bottom_light</item>
+        <item name="discLift">@color/lift_light</item>
+        <item name="shadowAmbient">@color/shadow_ambient_light</item>
+        <item name="shadowSpot">@color/shadow_spot_light</item>
+        <item name="ink">@color/ink_light</item>
+        <item name="inkDim">@color/ink_dim_light</item>
+    </style>
+
+    <style name="Dark" parent="Base">
+        <item name="android:windowBackground">@color/ground_dark</item>
+        <item name="ground">@color/ground_dark</item>
+        <item name="discTop">@color/disc_top_dark</item>
+        <item name="discBottom">@color/disc_bottom_dark</item>
+        <item name="discRimTop">@color/rim_top_dark</item>
+        <item name="discRimBottom">@color/rim_bottom_dark</item>
+        <item name="discLift">@color/lift_dark</item>
+        <item name="shadowAmbient">@color/shadow_ambient_dark</item>
+        <item name="shadowSpot">@color/shadow_spot_dark</item>
+        <item name="ink">@color/ink_dark</item>
+        <item name="inkDim">@color/ink_dim_dark</item>
+    </style>
+
+    <!-- Three sizes of type carry the whole interface -->
     <style name="Text">
         <item name="android:includeFontPadding">false</item>
         <item name="android:singleLine">true</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">?ink</item>
     </style>
 
-    <style name="Text.Header" parent="Text.OnPhoto">
-        <item name="android:textSize">@dimen/text_header</item>
-        <item name="android:textColor">@color/ink</item>
-        <item name="android:fontFeatureSettings">tnum</item>
-    </style>
-
-    <style name="Text.Secondary" parent="Text.OnPhoto">
-        <item name="android:textSize">@dimen/text_secondary</item>
-        <item name="android:textColor">@color/ink_dim</item>
-    </style>
-
-    <!-- Text that sits straight on the photograph gets a soft shadow, so it reads over ice and sky as well as over forest -->
-    <style name="Text.OnPhoto">
-        <item name="android:shadowColor">#99000000</item>
-        <item name="android:shadowRadius">8</item>
-        <item name="android:shadowDy">1</item>
-    </style>
-
-    <style name="Text.Body" parent="Text.OnPhoto">
-        <item name="android:textSize">@dimen/text_body</item>
-        <item name="android:textColor">@color/ink</item>
-    </style>
-
-    <style name="Text.TileName">
-        <item name="android:textSize">@dimen/text_tile</item>
-        <item name="android:letterSpacing">0.02</item>
-        <item name="android:textColor">@color/ink</item>
+    <!-- the date and time, on every screen and on the screensaver -->
+    <style name="Text.Clock">
+        <item name="android:textSize">@dimen/text_clock</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-    </style>
-
-    <style name="Text.TileCaption">
-        <item name="android:textSize">@dimen/text_tile</item>
-        <item name="android:letterSpacing">0.02</item>
-        <item name="android:textColor">@color/ink_dim</item>
-    </style>
-
-    <style name="Text.SaverTime" parent="Text">
-        <item name="android:textSize">@dimen/text_saver_time</item>
-        <item name="android:textColor">@color/ink</item>
-        <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:fontFeatureSettings">tnum</item>
-        <item name="android:letterSpacing">-0.02</item>
     </style>
 
-    <style name="Text.SaverDate" parent="Text">
-        <item name="android:textSize">@dimen/text_saver_date</item>
-        <item name="android:textColor">@color/ink_dim</item>
+    <!-- the name under a disc, and a line of instructions -->
+    <style name="Text.Label">
+        <item name="android:textSize">@dimen/text_label</item>
     </style>
 
-    <style name="Text.Launching" parent="Text.OnPhoto">
-        <item name="android:textSize">@dimen/text_launching</item>
-        <item name="android:textColor">@color/ink</item>
-    </style>
-
-    <style name="Text.Credit" parent="Text.OnPhoto">
-        <item name="android:textSize">@dimen/text_caption</item>
-        <item name="android:letterSpacing">0.02</item>
-        <item name="android:textColor">@color/ink_dim</item>
+    <!-- a setting's value, under its name -->
+    <style name="Text.Caption" parent="Text.Label">
+        <item name="android:textColor">?inkDim</item>
     </style>
 </resources>

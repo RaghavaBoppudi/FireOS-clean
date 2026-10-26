@@ -1,35 +1,34 @@
 # FireOS-clean
 
-**A minimal home screen for Fire TV Stick, with your own wallpapers.**
+**A minimal, flat home screen for Fire TV Stick.**
 
-Amazon's home is full of banners, sponsored rows and autoplay. This replaces it with a wallpaper, one line of date and
-time, and a small frosted dock of up to six apps you choose. Your own photos rotate behind it, pulled from a GitHub
-repository you control (public or private), with a credit line for the photographer.
+Amazon's home is full of banners, sponsored rows and autoplay. This replaces it with a calm, flat screen: one line of
+date and time, and a row of glass discs for the apps you choose, in the middle of the screen. Light by default, with a
+dark look in Settings.
 
 ![Home](docs/screenshots/home.jpg)
 
-| All apps | Settings |
+| Dark | Settings |
 |---|---|
-| ![All apps](docs/screenshots/all-apps.jpg) | ![Settings](docs/screenshots/settings.jpg) |
+| ![Dark](docs/screenshots/home-dark.jpg) | ![Settings](docs/screenshots/settings.jpg) |
 
-| Editing the dock | Adding an app |
+| Editing the dock | Screensaver |
 |---|---|
-| ![Editing the dock](docs/screenshots/edit.jpg) | ![Adding an app](docs/screenshots/add.jpg) |
+| ![Editing the dock](docs/screenshots/edit.jpg) | ![Screensaver](docs/screenshots/screensaver.jpg) |
 
-![Screensaver](docs/screenshots/screensaver.jpg)
+(The clock reads 09:41 in every picture: it is fixed for the screenshots.)
 
-(Wallpapers pulled from a private GitHub repository. Photos by Raghava Boppudi and by Allen Daniel for these examples.)
+Looking for the earlier version with rotating wallpapers? It is tagged [`wallpaper-home`](https://github.com/RaghavaBoppudi/FireOS-clean/tree/wallpaper-home).
 
 ## What you get
 
-- **Wallpaper first.** The dock is small and sits low, so the picture has the screen. White marks only; the wallpaper is the only colour.
-- **Apps you choose.** Up to six on the dock, picked with the pencil at the top right (see [Make the dock yours](#make-the-dock-yours)). Marks are cut from each app's own artwork, so apps you install later fit in automatically. Every other app, the Appstore included, is under **All apps**. The dock is ordered by last used, or by name if you prefer.
-- **A top bar that follows the picture.** The date and buttons are white over a dark wallpaper and near black over a light one, and change colour with the photo as it fades.
-- **A screensaver that is only a gradient.** After a few idle minutes the wallpaper blurs into soft fields of its own colours, with the time and date drifting across it so no pixel is held in place. Any button wakes it.
-- **Your own wallpapers from GitHub.** Add images to a repository, name them `1-First-Last.jpg`, and the TV shows them in order with `© First Last`. Any image size works: 100-megapixel photos are cut to 16:9 on the stick, a piece at a time. Public or private repository. With none, nine built-in dune wallpapers are used.
-- **Settings in the same style.** Network, Controllers, Apps, My Fire TV, the wallpaper timer (30 seconds to daily; daily changes at midnight), new wallpapers, the dock order and the screensaver delay. Each shows its name, and the ones you change show their current value under it.
-- **Covers Amazon's home completely.** A frosted "Launching Home" screen (a blurred wallpaper with a spinner) is held until the new home is really on screen, so Amazon's home is never seen. The handover takes about a second. It also starts early at boot and survives restarts.
-- **No account, no cloud, no tracking.** The only network use is reading your wallpaper repository, and only if you set one.
+- **A flat, quiet screen.** An off-white ground (or a near-black one), up to six apps as discs of frosted glass, the name of the selected one fading in under it. Every other screen uses the same discs.
+- **Apps you choose.** Up to six on the dock, picked with the pencil at the bottom (see [Make the dock yours](#make-the-dock-yours)). Well-known apps show their own mark; any other has its mark cut from its icon (an app that is only a name shows its first letter), so apps you install later fit in automatically. Every other app, the Appstore included, is under the all apps button.
+- **Light and dark.** **Settings > Theme** switches between them. The dark look is tonal glass: graphite discs a shade lighter than the screen, with a rim of light and a soft glow.
+- **A screensaver that is only the time.** After a few idle minutes the screen is bare, with the date and time drifting across it so no pixel is held in place. Any button wakes it.
+- **Settings in the same style.** Network, Controllers, Apps, My Fire TV, the theme, the dock order and the screensaver delay. Each shows its name, and the ones you change show their current value.
+- **Covers Amazon's home completely.** A "Launching Home" screen is held until the new home is really on screen, so Amazon's home is never seen. The handover takes about a second. It also starts early at boot and survives the app being updated.
+- **No account, no cloud, no tracking.** The app has no network permission at all.
 - **Reversible.** One command puts Amazon's home back.
 
 ## How it works
@@ -39,27 +38,14 @@ you grant once over ADB), covers it, and brings its own home up. Android blocks 
 let you switch on **ADB debugging** (Settings > My Fire TV > Developer options). Tested on a Fire TV Stick Lite (Fire OS 7,
 Android 9); other Fire OS 7 devices should work, and Fire OS 5 is untested for the home screen. It is not affiliated with Amazon.
 
-## Speed and size
+## Size
 
-Measured on a Fire TV Stick Lite (1 GB RAM, Fire OS 7) with the app's own timers and Android's frame statistics:
-
-| | Result |
-|---|---|
-| Home button to the new home on screen | **0.3 to 1.0 s** (5.0 s before the alarm-based start; Amazon's own home takes about 0.4 to 0.7 s) |
-| Cold start of the app | 438 ms |
-| Frames over budget while moving through the dock | 0 of 176 (90th percentile 6 ms) |
-| Memory in use | about 60 MB |
-| Size of the app | 0.25 MB |
-
-For a fair comparison: Amazon's own home is a little quicker to appear, because it is the system's home and starts first.
-This one is covered the whole time by the "Launching Home" screen, so you never see Amazon's home while it loads. The
-five-second figure was Android deliberately holding back any app's screen after the Home button; see "How it works".
-Numbers will vary a little with the stick, its load and the wallpaper.
+The app is about 0.07 MB, with no images in it: the screen is drawn, and the only pictures are the vector logos and
+glyphs. It has no network permission, and its whole source is about 2,400 lines of Java.
 
 ## Requirements
 
 - A Fire TV with ADB debugging on, and a computer on the same network (macOS or Linux; a JDK 17 and the Android SDK to build).
-- Optional: a GitHub account for your own wallpapers.
 
 ## Build and install
 
@@ -96,16 +82,16 @@ Fire OS 7 (Android 9); Fire OS 5 needs its own check.
 
 ## Make the dock yours
 
-Press **Up** from the dock, then **Right** to the pencil, and **OK**. The dock opens to six slots, the apps rock, and a
-line above it says what each button does. The controls:
+Press **Down** from the dock to the buttons at the bottom, move to the pencil, and press **OK**. The discs rock, and a
+line under them says what each button does. The controls:
 
 | You press | What happens |
 |---|---|
-| **OK** on an app | Picks it up. It grows, so you can tell it from one you are only pointing at. |
+| **OK** on an app | Picks it up. It grows again, so you can tell it from one you are only pointing at. |
 | **← →** while holding | Moves it along the dock. |
 | **OK** while holding | Sets it down. |
 | **↑** while holding | Lifts it off the dock. **OK** then removes it; **↓** puts it back. |
-| **OK** on **+** | Opens the apps that are not on the dock, under it. **OK** on one adds it; the list stays open for more. |
+| **OK** on **+** | Opens the apps that are not on the dock. **OK** on one adds it and returns to the dock. |
 | **Back** | Steps out one level: cancels a move, closes the list of apps, then leaves edit mode. |
 
 The dock holds one app to six. Asking for a seventh, or to remove the last one, shakes the dock and says why. Every change
@@ -125,69 +111,9 @@ installer prints which names it found and which it did not. A dock you have alre
 
 ## Screensaver
 
-After the home has sat idle it shows the wallpaper blurred until it is only a gradient, with the time and date on it,
-moving to a new place every ten seconds. Any button wakes it, and that press does nothing else. Choose the delay under
-**Settings > Screensaver**: Off, 1, 5 (the default), 10, 15 or 30 minutes. It never starts while you are editing the dock.
-
-## Your own wallpapers
-
-Out of the box the home uses nine sand-dune wallpapers built into the app. To show your own images, the app downloads them from
-a GitHub repository of yours, public or private. Set it up once:
-
-1. **Create the repository.** On GitHub choose **New repository**, give it a name such as `tv-wallpapers`, set it
-   to **Public** (or Private, see below) and create it. (It can be empty. Public is simplest; for a private one see below.)
-2. **Add images.** Open the repository, choose **Add file > Upload files**, drag your images in and **Commit changes**.
-   Use JPG, PNG or WebP at the **top level** (not in a folder). **16:9** images are ideal (1920 × 1080 is enough, 3840 × 2160
-   is plenty). Any other shape or size is fine too: the TV cuts the middle 16:9 out of it and scales it to 1920 × 1080
-   itself, one image at a time, in the background, so even a 100-megapixel photo is safe. GitHub's own limit of 100 MB
-   per file applies, and smaller files simply download faster.
-   From a terminal: `git add . && git commit -m "Add wallpapers" && git push`.
-   The folder [`wallpaper-repo-template/`](wallpaper-repo-template/) has a ready-made README you can copy into the repository.
-3. **Name the files to order and credit them.** Name each image `NUMBER-First-Last.jpg`, for example
-   `1-Raghava-Boppudi.jpg`, `2-Allen-Daniel.jpg`. The number is the order the wallpapers rotate in (1, 2, 3 ... 10, 11
-   are in numeric order). The words after it are the photographer: the screen shows `© Raghava Boppudi` bottom right.
-   A file with no number in front is shown after the numbered ones, and with no credit. Rename a file on GitHub with
-   the pencil icon on its page, or with `git mv`.
-4. **Point the app at it.** Edit [`firehome/res/values/config.xml`](firehome/res/values/config.xml) and set
-   `wallpaper_repo` to `YOUR-GITHUB-USERNAME/YOUR-REPO-NAME`. If the images are in a folder, put its name in
-   `wallpaper_path`. Then run `firehome/install.sh` again.
-5. **Check it.** On the TV open **Settings > New wallpapers**. It says "N wallpapers from GitHub" when it found
-   your images. After that new images are picked up automatically, every 30 minutes, whenever Home opens.
-
-### Keeping the repository private
-
-Your images can stay private, so only you can see them and the TV still gets them. The TV then needs a read-only
-**access token**:
-
-1. On GitHub open **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**.
-2. Set **Repository access** to **Only select repositories** and choose your wallpaper repository. Under **Permissions >
-   Repository permissions** set **Contents** to **Read-only**. Nothing else. Pick an expiry (a year is reasonable).
-3. Copy the token (it starts with `github_pat_`). Save it in the git-ignored file `firehome/wallpaper-token`, or pass it for one run:
-   `WALLPAPER_TOKEN=github_pat_... firehome/install.sh`. The installer sends it to the TV over ADB; it is kept in the app's
-   private storage, **not** in the APK and not in git, and is only ever sent to GitHub.
-4. Open **Settings > New wallpapers** on the TV. "GitHub won't show this TV the repository" means the name or the token is wrong.
-   Remove the token any time with `firehome/install.sh --clear-token`. When it expires, make a new one and run `install.sh` again.
-
-Anyone with ADB access to your TV could read the token, which is why it should be read-only and for this one repository.
-Before switching a repository to private, install with the token first: until then the TV can't see it.
-
-How it behaves:
-
-| Situation | What the TV shows |
-|---|---|
-| The repository has at least one valid image | Only your images, in number order |
-| The repository is empty or has no valid images | The built-in dunes |
-| No repository is set in `config.xml` | The built-in dunes, and no network use |
-| GitHub is unreachable | The last images it downloaded; the dunes if there are none |
-
-If New wallpapers says "The repository has no images yet": check the images are on the default branch at the top level (or in
-the folder you set as `wallpaper_path`) and are JPG, PNG or WebP. For a public repository, opening
-`https://api.github.com/repos/YOUR-GITHUB-USERNAME/YOUR-REPO-NAME/contents/` in a browser should list them. A private
-repository shows "Not Found" there by design; use the token steps above instead. If it says "GitHub won't show this TV the
-repository", the repository name in `config.xml` or the token is wrong.
-Anyone who can push to the repository controls your wallpapers, so keep its write access to yourself, and only
-add images you have the right to publish. The built-in dunes are generated by
-[`firehome/wallpapers/generate.py`](firehome/wallpapers/generate.py) (needs numpy and Pillow) and are CC0. Icons are [Material Symbols](https://github.com/google/material-design-icons) (Apache 2.0); see [`firehome/NOTICE.md`](firehome/NOTICE.md).
+After the home has sat idle it shows the bare screen with the date and time on it, moving to a new place every ten
+seconds. Any button wakes it, and that press does nothing else. Choose the delay under **Settings > Screensaver**: Off,
+1, 5 (the default), 10, 15 or 30 minutes. It never starts while you are editing the dock.
 
 ---
 
@@ -283,4 +209,4 @@ home, its full-screen ads and sponsored tiles stop coming up. Newer Fire OS lets
 Built on [CleanYourTV](https://github.com/Gathin23/cleanyourtv) by Gathin23 (MIT): the ADB client, the
 backup/restore scripts and the Fire OS 6 and 7 lists come from there. The browser remote (`tools/remote.py`), the PIN
 pairing tool (`tools/firetv.py`) and the Fire TV Stick 2nd gen list were added by [whyashthakker](https://github.com/whyashthakker),
-who adapted CleanYourTV for sticks without a remote. The home screen in `firehome/` is by Raghava Boppudi. MIT licence, see [`LICENSE`](LICENSE).
+who adapted CleanYourTV for sticks without a remote. The home screen in `firehome/` is by Raghava Boppudi. App marks are from [Simple Icons](https://simpleicons.org) (CC0), and the glyphs from [Material Symbols](https://github.com/google/material-design-icons) (Apache 2.0); see [`firehome/NOTICE.md`](firehome/NOTICE.md). MIT licence, see [`LICENSE`](LICENSE).

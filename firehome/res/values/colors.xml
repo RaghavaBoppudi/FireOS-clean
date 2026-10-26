@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ground">#FF0B0B0C</color>
-    <color name="ink">#FFF4F4F2</color>
-    <color name="ink_dim">#B3F4F4F2</color>
-    <!-- the same two, for a light wallpaper behind them -->
-    <color name="ink_on_light">#FF141416</color>
-    <color name="ink_dim_on_light">#B3141416</color>
-    <!-- over the screensaver's blurred picture, so it is easy on a dark room -->
-    <color name="saver_veil">#33000000</color>
-    <!-- the soft shadow behind a resting top-bar icon -->
-    <color name="halo">#33000000</color>
-    <color name="halo_edge">#0F000000</color>
-    <color name="ground_dim">#B30B0B0C</color>
-
-    <!-- The only colour in the interface is the photograph: everything else is white on a dark veil -->
-    <color name="veil">#6614161E</color>
-    <color name="scrim">#8C000000</color>
-    <!-- over the soft picture on the launch cover: frosted, not black -->
-    <color name="launch_veil">#59101216</color>
-    <!-- the dash between the dock and the apps that can be added to it -->
-    <color name="dash">#40FFFFFF</color>
-    <!-- the top-edge shimmer of a frosted panel, at its brightest in the middle -->
-    <color name="shimmer">#A6FFFFFF</color>
+    <!-- Light, the default: an off-white screen, discs of white glass, near-black ink, soft shadows -->
+    <color name="ground_light">#FFF5F5F3</color>
+    <color name="disc_top_light">#FFFFFFFF</color>
+    <color name="disc_bottom_light">#FFF8F8F7</color>
+    <color name="rim_top_light">#FFFFFFFF</color>
+    <color name="rim_bottom_light">#FFF8F8F7</color>
+    <color name="lift_light">#00FFFFFF</color>
+    <color name="shadow_ambient_light">#33000000</color>
+    <color name="shadow_spot_light">#66000000</color>
+    <color name="ink_light">#FF1D1D1F</color>
+    <color name="ink_dim_light">#991D1D1F</color>
+    <!-- Dark, tonal glass: a near-black screen, graphite discs lighter than it, a rim of light fading down from the top of each, and
+         a soft glow where the light look has a shadow -->
+    <color name="ground_dark">#FF111113</color>
+    <color name="disc_top_dark">#FF2B2B2F</color>
+    <color name="disc_bottom_dark">#FF1D1D20</color>
+    <color name="rim_top_dark">#FF404045</color>
+    <color name="rim_bottom_dark">#FF1D1D20</color>
+    <color name="lift_dark">#1AFFFFFF</color>
+    <color name="shadow_ambient_dark">#1FFFFFFF</color>
+    <color name="shadow_spot_dark">#33FFFFFF</color>
+    <color name="ink_dark">#FFF5F5F7</color>
+    <color name="ink_dim_dark">#99F5F5F7</color>
 </resources>
