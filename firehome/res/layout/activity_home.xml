@@ -7,17 +7,28 @@
 
     <include layout="@layout/screen" />
 
-    <!-- the date and time: on Home alone -->
+    <!-- the date at the top left and the time at the top right: on Home alone -->
     <TextClock
-        android:id="@+id/clock"
+        android:id="@+id/date"
         style="@style/Text.Clock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
         android:layout_marginStart="@dimen/margin"
         android:layout_marginTop="@dimen/clock_top"
-        android:format12Hour="EEEE d MMMM  |  HH:mm"
-        android:format24Hour="EEEE d MMMM  |  HH:mm" />
+        android:format12Hour="EEEE d MMMM"
+        android:format24Hour="EEEE d MMMM" />
+
+    <TextClock
+        android:id="@+id/time"
+        style="@style/Text.Clock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginEnd="@dimen/margin"
+        android:layout_marginTop="@dimen/clock_top"
+        android:format12Hour="HH:mm"
+        android:format24Hour="HH:mm" />
 
     <!-- the greeting at the bottom left: a picture and a line, which the line of instructions takes the place of -->
     <LinearLayout

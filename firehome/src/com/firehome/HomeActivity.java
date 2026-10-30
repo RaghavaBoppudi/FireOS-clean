@@ -50,6 +50,8 @@ public class HomeActivity extends Activity {
     private static boolean appOpened;
     private static final String STATE_SELECTED = "selected";
 
+    private boolean cameUp;                // this screen has faded in once; coming back to it does not fade it again
+
     private final Map<String, Bubble> views = new LinkedHashMap<>();   // by Tile.key, in shelf order
     private final List<String> shown = new ArrayList<>();
     private int look;                     // the theme this screen was made in, and the wallpaper it shows
@@ -174,8 +176,16 @@ public class HomeActivity extends Activity {
         scheduleShuffle();
     }
 
-    /** The screen comes up out of the black of its window, so that nothing light flashes as it opens. */
+    /**
+     * Home comes up out of the black of its window, so that nothing light flashes as it opens. It is only faded the
+     * once: coming back to it (from All apps, say) finds it drawn, and fading it again would flash it black. The screens
+     * that extend it are not faded at all, for their opening would flash black over Home.
+     */
     private void comeUpFromBlack() {
+        if (cameUp || getClass() != HomeActivity.class) {
+            return;
+        }
+        cameUp = true;
         View root = ((ViewGroup) findViewById(android.R.id.content)).getChildAt(0);
         root.setAlpha(0f);
         root.animate().alpha(1f).setDuration(getResources().getInteger(R.integer.fade_in_ms)).withLayer();
@@ -186,7 +196,7 @@ public class HomeActivity extends Activity {
         if (Wallpaper.soft() == null) {
             return;
         }
-        for (int id : new int[]{R.id.clock, R.id.title, R.id.greeting}) {
+        for (int id : new int[]{R.id.date, R.id.time, R.id.title, R.id.greeting}) {
             paint(id, false);
         }
         paint(R.id.credit, true);

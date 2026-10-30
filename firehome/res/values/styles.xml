@@ -57,7 +57,7 @@
         <item name="android:shadowDy">1</item>
     </style>
 
-    <!-- the date and time at the top left of Home and on the screensaver, and the name of a screen in its place -->
+    <!-- the date at the top left and the time at the top right of Home, both together on the screensaver, and the name of a screen in its place -->
     <style name="Text.Clock">
         <item name="android:textSize">@dimen/text_clock</item>
         <item name="android:fontFamily">sans-serif-medium</item>
